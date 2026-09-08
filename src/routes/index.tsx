@@ -1,24 +1,33 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { Loader2 } from "lucide-react";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
+import { supabase } from "@/integrations/supabase/client";
+
 export const Route = createFileRoute("/")({
-  component: Index,
-});
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+  ssr: false,
+  head: () => ({
+    meta: [
+      { title: "GTAC — Trazabilidad de Activos" },
+      {
+        name: "description",
+        content:
+          "Plataforma interna GTAC para administrar y dar seguimiento a activos fijos en sitios de telecomunicaciones.",
+      },
+      { property: "og:title", content: "GTAC — Trazabilidad de Activos" },
+      {
+        property: "og:description",
+        content:
+          "Plataforma interna GTAC para administrar y dar seguimiento a activos fijos en sitios de telecomunicaciones.",
+      },
+    ],
+  }),
+  beforeLoad: async () => {
+    const { data } = await supabase.auth.getUser();
+    throw redirect({ to: data.user ? "/inicio" : "/auth" });
+  },
+  component: () => (
+    <div className="flex min-h-screen items-center justify-center">
+      <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
     </div>
-  );
-}
+  ),
+});
