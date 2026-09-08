@@ -146,7 +146,6 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_active_profile: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "engineer"
