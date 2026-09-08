@@ -1,0 +1,49 @@
+# GTAC — Trazabilidad de Activos · Fase 1
+
+Base funcional y segura: autenticación real, roles, sitios, asignaciones y navegación. Sin escáner, movimientos, inventarios, alertas, reportes ni correo.
+
+## Backend (Lovable Cloud sobre PostgreSQL)
+
+Se activa el backend integrado (PostgreSQL + autenticación gestionada). Todo el esquema queda en migraciones SQL versionadas, portables a un servidor propio.
+
+### Tablas
+
+- **profiles**: `id` (UUID, = usuario autenticado), `email` único, `full_name`, `active` (bool), `created_at`, `updated_at`.
+- **user_roles**: `id`, `user_id`, `role` (`admin` | `engineer`), único por (user_id, role). El rol vive en tabla aparte por seguridad; nadie puede editar su propio rol.
+- **sites**: `id`, `name`, `code` (opcional, único si existe), `active`, `latitude`, `longitude`, `created_at`, `updated_at`.
+- **engineer_sites**: `id`, `engineer_id`, `site_id`, `active`, `created_at`, único por (engineer_id, site_id).
+
+### Seguridad
+
+- RLS activo en las cuatro tablas, con función `has_role(user_id, role)` de tipo security definer.
+- Ingeniero: lee su propio perfil y solo los sitios que tiene asignados. No puede cambiar rol, `active` ni asignaciones.
+- Admin: lee y gestiona perfiles, sitios y asignaciones.
+- Un disparador crea el perfil automáticamente cuando el administrador provisiona una cuenta. Sin registro público: la pantalla de acceso solo tiene inicio de sesión y recuperación de contraseña.
+- Primer administrador: se otorga el rol por una sentencia SQL única ejecutada en la base de datos (no desde la aplicación) tras crear esa cuenta. Ninguna ruta de la app permite autoasignarse admin.
+- Después de iniciar sesión se valida que el perfil esté activo; si no lo está, se cierra la sesión con mensaje claro.
+
+## Pantallas
+
+- **Acceso** (`/auth`): correo + contraseña, enlace de recuperación, y pantalla para definir la nueva contraseña.
+- **Inicio**: saludo, indicador de conexión, selector horizontal de sitios asignados (la selección se conserva al navegar y se valida contra permisos), sitio actual, bloque de acciones rápidas preparado y "Actividad reciente" vacía.
+- **Sitios**: listar, crear y editar sitios; asignar ingenieros. Solo administrador para escritura.
+- **Ingenieros**: listado de perfiles y sus sitios asignados (solo administrador).
+- **Dashboard, Activos, Alertas, Reportes, Escanear**: pantalla "Módulo en desarrollo".
+
+## Diseño
+
+Fondo blanco, sidebar izquierdo en escritorio y navegación adaptada en móvil. Logo cuadrado negro con "GT", título GTAC y subtítulo "Trazabilidad de Activos". Elemento de menú activo en negro con texto blanco, tarjetas blancas con borde gris suave, botones redondeados. Menú de usuario con nombre, rol, cambiar contraseña y cerrar sesión.
+
+## Calidad
+
+Rutas protegidas, estados de carga y error explícitos, sin mensajes de éxito ante fallos, consultas acotadas (sin traer datos innecesarios), fechas guardadas en UTC y mostradas en horario de Ciudad de México.
+
+## Notas técnicas
+
+- React + TypeScript + Vite (TanStack Start/Router ya presente), módulos por dominio en `src/modules/*`.
+- Claves públicas por variables de entorno; ningún secreto en el frontend.
+- Migraciones SQL en `supabase/migrations` + documento `docs/DEPLOYMENT.md` con dependencias para migrar a infraestructura propia (PostgreSQL 15+, extensión pgcrypto, servicio de autenticación equivalente, variables de entorno, ejecución de migraciones).
+
+## Entregable final
+
+Al terminar se reporta: implementado, pendiente, migraciones creadas, cómo crear el primer administrador, qué configurar para probar el acceso y dependencias para servidores propios.
