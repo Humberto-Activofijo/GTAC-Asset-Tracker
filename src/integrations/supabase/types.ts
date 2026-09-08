@@ -14,16 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      engineer_sites: {
+        Row: {
+          active: boolean
+          created_at: string
+          engineer_id: string
+          id: string
+          site_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          engineer_id: string
+          id?: string
+          site_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          engineer_id?: string
+          id?: string
+          site_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "engineer_sites_engineer_id_fkey"
+            columns: ["engineer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "engineer_sites_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sites: {
+        Row: {
+          active: boolean
+          code: string | null
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string | null
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_active_profile: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "engineer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +276,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "engineer"],
+    },
   },
 } as const
