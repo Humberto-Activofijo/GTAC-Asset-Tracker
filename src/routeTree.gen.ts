@@ -18,8 +18,10 @@ import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated/cuenta'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEscanearRouteImport } from './routes/_authenticated/escanear'
+import { Route as AuthenticatedIngenierosRouteImport } from './routes/_authenticated/ingenieros'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
+import { Route as AuthenticatedSitiosRouteImport } from './routes/_authenticated/sitios'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -65,6 +67,11 @@ const AuthenticatedEscanearRoute = AuthenticatedEscanearRouteImport.update({
   path: '/escanear',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedIngenierosRoute = AuthenticatedIngenierosRouteImport.update({
+  id: '/ingenieros',
+  path: '/ingenieros',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
@@ -73,6 +80,11 @@ const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
 const AuthenticatedReportesRoute = AuthenticatedReportesRouteImport.update({
   id: '/reportes',
   path: '/reportes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedSitiosRoute = AuthenticatedSitiosRouteImport.update({
+  id: '/sitios',
+  path: '/sitios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
@@ -85,8 +97,10 @@ export interface FileRoutesByFullPath {
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escanear': typeof AuthenticatedEscanearRoute
+  '/ingenieros': typeof AuthenticatedIngenierosRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/reportes': typeof AuthenticatedReportesRoute
+  '/sitios': typeof AuthenticatedSitiosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -97,8 +111,10 @@ export interface FileRoutesByTo {
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/escanear': typeof AuthenticatedEscanearRoute
+  '/ingenieros': typeof AuthenticatedIngenierosRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/reportes': typeof AuthenticatedReportesRoute
+  '/sitios': typeof AuthenticatedSitiosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -111,8 +127,10 @@ export interface FileRoutesById {
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/escanear': typeof AuthenticatedEscanearRoute
+  '/_authenticated/ingenieros': typeof AuthenticatedIngenierosRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
+  '/_authenticated/sitios': typeof AuthenticatedSitiosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -125,8 +143,10 @@ export interface FileRouteTypes {
     | '/cuenta'
     | '/dashboard'
     | '/escanear'
+    | '/ingenieros'
     | '/inicio'
     | '/reportes'
+    | '/sitios'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -137,8 +157,10 @@ export interface FileRouteTypes {
     | '/cuenta'
     | '/dashboard'
     | '/escanear'
+    | '/ingenieros'
     | '/inicio'
     | '/reportes'
+    | '/sitios'
   id:
     | '__root__'
     | '/'
@@ -150,8 +172,10 @@ export interface FileRouteTypes {
     | '/_authenticated/cuenta'
     | '/_authenticated/dashboard'
     | '/_authenticated/escanear'
+    | '/_authenticated/ingenieros'
     | '/_authenticated/inicio'
     | '/_authenticated/reportes'
+    | '/_authenticated/sitios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -226,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedEscanearRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ingenieros': {
+      id: '/_authenticated/ingenieros'
+      path: '/ingenieros'
+      fullPath: '/ingenieros'
+      preLoaderRoute: typeof AuthenticatedIngenierosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/inicio': {
       id: '/_authenticated/inicio'
       path: '/inicio'
@@ -240,6 +271,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedReportesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/sitios': {
+      id: '/_authenticated/sitios'
+      path: '/sitios'
+      fullPath: '/sitios'
+      preLoaderRoute: typeof AuthenticatedSitiosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -249,8 +287,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEscanearRoute: typeof AuthenticatedEscanearRoute
+  AuthenticatedIngenierosRoute: typeof AuthenticatedIngenierosRoute
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
+  AuthenticatedSitiosRoute: typeof AuthenticatedSitiosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -259,8 +299,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEscanearRoute: AuthenticatedEscanearRoute,
+  AuthenticatedIngenierosRoute: AuthenticatedIngenierosRoute,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,
+  AuthenticatedSitiosRoute: AuthenticatedSitiosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

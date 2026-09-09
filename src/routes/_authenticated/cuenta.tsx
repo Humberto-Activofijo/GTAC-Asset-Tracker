@@ -41,11 +41,11 @@ function CuentaPage() {
     }
     setLoading(true);
     try {
+      // current_password es requerido por Cloud cuando la sesión ya está iniciada.
       const { error: updateError } = await supabase.auth.updateUser({
         password,
-        // @ts-expect-error current_password es requerido por Cloud para cambios con sesión activa
         current_password: current,
-      });
+      } as Parameters<typeof supabase.auth.updateUser>[0]);
       if (updateError) {
         setError(updateError.message);
         return;
