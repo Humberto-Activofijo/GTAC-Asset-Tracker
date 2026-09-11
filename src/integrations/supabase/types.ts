@@ -53,6 +53,78 @@ export type Database = {
           },
         ]
       }
+      pending_engineer_sites: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          pending_engineer_id: string
+          site_id: string
+          source: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          pending_engineer_id: string
+          site_id: string
+          source?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          pending_engineer_id?: string
+          site_id?: string
+          source?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pending_engineer_sites_pending_engineer_id_fkey"
+            columns: ["pending_engineer_id"]
+            isOneToOne: false
+            referencedRelation: "pending_engineers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pending_engineer_sites_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pending_engineers: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           active: boolean
@@ -89,6 +161,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           name: string
+          source: string | null
           updated_at: string
         }
         Insert: {
@@ -99,6 +172,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name: string
+          source?: string | null
           updated_at?: string
         }
         Update: {
@@ -109,6 +183,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           name?: string
+          source?: string | null
           updated_at?: string
         }
         Relationships: []
