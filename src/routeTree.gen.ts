@@ -13,7 +13,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as AuthenticatedActivosRouteImport } from './routes/_authenticated/activos'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated/cuenta'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -22,6 +21,8 @@ import { Route as AuthenticatedIngenierosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedSitiosRouteImport } from './routes/_authenticated/sitios'
+import { Route as AuthenticatedActivosIndexRouteImport } from './routes/_authenticated/activos/index'
+import { Route as AuthenticatedActivosAssetIdRouteImport } from './routes/_authenticated/activos/$assetId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,11 +42,6 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedActivosRoute = AuthenticatedActivosRouteImport.update({
-  id: '/activos',
-  path: '/activos',
-  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAlertasRoute = AuthenticatedAlertasRouteImport.update({
   id: '/alertas',
@@ -87,12 +83,23 @@ const AuthenticatedSitiosRoute = AuthenticatedSitiosRouteImport.update({
   path: '/sitios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedActivosIndexRoute =
+  AuthenticatedActivosIndexRouteImport.update({
+    id: '/activos/',
+    path: '/activos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedActivosAssetIdRoute =
+  AuthenticatedActivosAssetIdRouteImport.update({
+    id: '/activos/$assetId',
+    path: '/activos/$assetId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/activos': typeof AuthenticatedActivosRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -101,12 +108,13 @@ export interface FileRoutesByFullPath {
   '/inicio': typeof AuthenticatedInicioRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
+  '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
+  '/activos/': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/activos': typeof AuthenticatedActivosRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -115,6 +123,8 @@ export interface FileRoutesByTo {
   '/inicio': typeof AuthenticatedInicioRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
+  '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
+  '/activos': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,7 +132,6 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/activos': typeof AuthenticatedActivosRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -131,6 +140,8 @@ export interface FileRoutesById {
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/sitios': typeof AuthenticatedSitiosRoute
+  '/_authenticated/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
+  '/_authenticated/activos/': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -138,7 +149,6 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/activos'
     | '/alertas'
     | '/cuenta'
     | '/dashboard'
@@ -147,12 +157,13 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/reportes'
     | '/sitios'
+    | '/activos/$assetId'
+    | '/activos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/reset-password'
-    | '/activos'
     | '/alertas'
     | '/cuenta'
     | '/dashboard'
@@ -161,13 +172,14 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/reportes'
     | '/sitios'
+    | '/activos/$assetId'
+    | '/activos'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
-    | '/_authenticated/activos'
     | '/_authenticated/alertas'
     | '/_authenticated/cuenta'
     | '/_authenticated/dashboard'
@@ -176,6 +188,8 @@ export interface FileRouteTypes {
     | '/_authenticated/inicio'
     | '/_authenticated/reportes'
     | '/_authenticated/sitios'
+    | '/_authenticated/activos/$assetId'
+    | '/_authenticated/activos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -214,13 +228,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/activos': {
-      id: '/_authenticated/activos'
-      path: '/activos'
-      fullPath: '/activos'
-      preLoaderRoute: typeof AuthenticatedActivosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/alertas': {
       id: '/_authenticated/alertas'
@@ -278,11 +285,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSitiosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/activos/': {
+      id: '/_authenticated/activos/'
+      path: '/activos'
+      fullPath: '/activos/'
+      preLoaderRoute: typeof AuthenticatedActivosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/activos/$assetId': {
+      id: '/_authenticated/activos/$assetId'
+      path: '/activos/$assetId'
+      fullPath: '/activos/$assetId'
+      preLoaderRoute: typeof AuthenticatedActivosAssetIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedActivosRoute: typeof AuthenticatedActivosRoute
   AuthenticatedAlertasRoute: typeof AuthenticatedAlertasRoute
   AuthenticatedCuentaRoute: typeof AuthenticatedCuentaRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -291,10 +311,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedSitiosRoute: typeof AuthenticatedSitiosRoute
+  AuthenticatedActivosAssetIdRoute: typeof AuthenticatedActivosAssetIdRoute
+  AuthenticatedActivosIndexRoute: typeof AuthenticatedActivosIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedActivosRoute: AuthenticatedActivosRoute,
   AuthenticatedAlertasRoute: AuthenticatedAlertasRoute,
   AuthenticatedCuentaRoute: AuthenticatedCuentaRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -303,6 +324,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedSitiosRoute: AuthenticatedSitiosRoute,
+  AuthenticatedActivosAssetIdRoute: AuthenticatedActivosAssetIdRoute,
+  AuthenticatedActivosIndexRoute: AuthenticatedActivosIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
