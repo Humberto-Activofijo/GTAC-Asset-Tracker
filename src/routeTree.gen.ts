@@ -21,6 +21,8 @@ import { Route as AuthenticatedIngenierosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedSitiosRouteImport } from './routes/_authenticated/sitios'
+import { Route as AuthenticatedActivosIndexRouteImport } from './routes/_authenticated/activos/index'
+import { Route as AuthenticatedActivosAssetIdRouteImport } from './routes/_authenticated/activos/$assetId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -81,6 +83,18 @@ const AuthenticatedSitiosRoute = AuthenticatedSitiosRouteImport.update({
   path: '/sitios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedActivosIndexRoute =
+  AuthenticatedActivosIndexRouteImport.update({
+    id: '/activos/',
+    path: '/activos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedActivosAssetIdRoute =
+  AuthenticatedActivosAssetIdRouteImport.update({
+    id: '/activos/$assetId',
+    path: '/activos/$assetId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -94,6 +108,8 @@ export interface FileRoutesByFullPath {
   '/inicio': typeof AuthenticatedInicioRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
+  '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
+  '/activos/': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -107,6 +123,8 @@ export interface FileRoutesByTo {
   '/inicio': typeof AuthenticatedInicioRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
+  '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
+  '/activos': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -122,6 +140,8 @@ export interface FileRoutesById {
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/sitios': typeof AuthenticatedSitiosRoute
+  '/_authenticated/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
+  '/_authenticated/activos/': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,6 +157,8 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/reportes'
     | '/sitios'
+    | '/activos/$assetId'
+    | '/activos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -150,6 +172,8 @@ export interface FileRouteTypes {
     | '/inicio'
     | '/reportes'
     | '/sitios'
+    | '/activos/$assetId'
+    | '/activos'
   id:
     | '__root__'
     | '/'
@@ -164,6 +188,8 @@ export interface FileRouteTypes {
     | '/_authenticated/inicio'
     | '/_authenticated/reportes'
     | '/_authenticated/sitios'
+    | '/_authenticated/activos/$assetId'
+    | '/_authenticated/activos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -259,6 +285,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSitiosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/activos/': {
+      id: '/_authenticated/activos/'
+      path: '/activos'
+      fullPath: '/activos/'
+      preLoaderRoute: typeof AuthenticatedActivosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/activos/$assetId': {
+      id: '/_authenticated/activos/$assetId'
+      path: '/activos/$assetId'
+      fullPath: '/activos/$assetId'
+      preLoaderRoute: typeof AuthenticatedActivosAssetIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -271,6 +311,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedSitiosRoute: typeof AuthenticatedSitiosRoute
+  AuthenticatedActivosAssetIdRoute: typeof AuthenticatedActivosAssetIdRoute
+  AuthenticatedActivosIndexRoute: typeof AuthenticatedActivosIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -282,6 +324,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedSitiosRoute: AuthenticatedSitiosRoute,
+  AuthenticatedActivosAssetIdRoute: AuthenticatedActivosAssetIdRoute,
+  AuthenticatedActivosIndexRoute: AuthenticatedActivosIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
