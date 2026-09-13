@@ -14,6 +14,65 @@ export type Database = {
   }
   public: {
     Tables: {
+      assets: {
+        Row: {
+          asset_number: string
+          category: string | null
+          condition: Database["public"]["Enums"]["asset_condition"]
+          created_at: string
+          created_by: string
+          created_by_email: string | null
+          current_site_id: string
+          id: string
+          last_movement_at: string | null
+          model: string | null
+          photo_url: string | null
+          serial_number: string | null
+          status: Database["public"]["Enums"]["asset_status"]
+          updated_at: string
+        }
+        Insert: {
+          asset_number: string
+          category?: string | null
+          condition?: Database["public"]["Enums"]["asset_condition"]
+          created_at?: string
+          created_by?: string
+          created_by_email?: string | null
+          current_site_id: string
+          id?: string
+          last_movement_at?: string | null
+          model?: string | null
+          photo_url?: string | null
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          updated_at?: string
+        }
+        Update: {
+          asset_number?: string
+          category?: string | null
+          condition?: Database["public"]["Enums"]["asset_condition"]
+          created_at?: string
+          created_by?: string
+          created_by_email?: string | null
+          current_site_id?: string
+          id?: string
+          last_movement_at?: string | null
+          model?: string | null
+          photo_url?: string | null
+          serial_number?: string | null
+          status?: Database["public"]["Enums"]["asset_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_current_site_id_fkey"
+            columns: ["current_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       engineer_sites: {
         Row: {
           active: boolean
@@ -221,9 +280,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_assigned_site: {
+        Args: { _site_id: string; _user_id: string }
+        Returns: boolean
+      }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
     }
     Enums: {
       app_role: "admin" | "engineer"
+      asset_condition: "ACTIVO" | "DESCONECTADO" | "DANADO"
+      asset_status: "EN_SITIO"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -352,6 +419,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "engineer"],
+      asset_condition: ["ACTIVO", "DESCONECTADO", "DANADO"],
+      asset_status: ["EN_SITIO"],
     },
   },
 } as const
