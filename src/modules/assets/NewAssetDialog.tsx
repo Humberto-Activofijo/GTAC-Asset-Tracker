@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, ImagePlus, Loader2, X } from "lucide-react";
+import { Camera, ImagePlus, Loader2, ScanLine, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/lib/image";
 import { useSelectedSite } from "@/modules/sites/SelectedSiteContext";
+import { ScanDialog } from "@/modules/scan/ScanDialog";
 import { ASSET_CONDITIONS, CONDITION_LABEL, type AssetCondition } from "./queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,6 +69,8 @@ export function NewAssetDialog({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
+  // Un solo campo puede escanear a la vez: nunca hay dos streams abiertos.
+  const [scanField, setScanField] = useState<"assetNumber" | "serialNumber" | null>(null);
 
   // El ingeniero solo ve sus sitios asignados; el administrador, todos los activos.
   const selectableSites = useMemo(() => sites.filter((s) => s.active), [sites]);
@@ -168,23 +171,43 @@ export function NewAssetDialog({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="asset-number">Número de activo / Código QR *</Label>
-            <Input
-              id="asset-number"
-              value={form.assetNumber}
-              onChange={(e) => setForm((f) => ({ ...f, assetNumber: e.target.value }))}
-              placeholder="Ej. GTAC-000123"
-              autoFocus
-            />
+            <div className="flex gap-2">
+              <Input
+                id="asset-number"
+                value={form.assetNumber}
+                onChange={(e) => setForm((f) => ({ ...f, assetNumber: e.target.value }))}
+                placeholder="Ej. GTAC-000123"
+                autoFocus
+              />
+              <Button
+                type="button"
+                variant="outline"
+                aria-label="Escanear número de activo"
+                onClick={() => setScanField("assetNumber")}
+              >
+                <ScanLine className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="serial">Número de serie</Label>
-              <Input
-                id="serial"
-                value={form.serialNumber}
-                onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="serial"
+                  value={form.serialNumber}
+                  onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-label="Escanear número de serie"
+                  onClick={() => setScanField("serialNumber")}
+                >
+                  <ScanLine className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="model">Modelo</Label>
@@ -290,6 +313,25 @@ export function NewAssetDialog({
             Guardar activo
           </Button>
         </DialogFooter>
+
+        <ScanDialog
+          open={scanField !== null}
+          onOpenChange={(v) => {
+            if (!v) setScanField(null);
+          }}
+          title={
+            scanField === "serialNumber"
+              ? "Escanear número de serie"
+              : "Escanear número de activo / QR"
+          }
+          description="Apunta la cámara al código de la etiqueta."
+          onCaptured={(code) => {
+            const field = scanField;
+            if (!field) return;
+            setForm((f) => ({ ...f, [field]: code }));
+            setScanField(null);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
