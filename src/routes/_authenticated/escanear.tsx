@@ -189,7 +189,11 @@ function ScanPage() {
         <div className="mt-4">
           {result.asset ? (
             <>
-              <AssetSummaryCard asset={result.asset} siteName={selectedSite.name} />
+              <AssetSummaryCard
+                asset={result.asset}
+                siteName={selectedSite.name}
+                canOpenDetail={sites.some((s) => s.id === result.asset?.current_site_id)}
+              />
               {result.matchedBy === "serial_number" && (
                 <p className="mt-2 text-xs text-muted-foreground">
                   Encontrado por número de serie.
@@ -201,7 +205,7 @@ function ScanPage() {
               <h2 className="text-base font-semibold text-foreground">Activo no encontrado</h2>
               <p className="mt-2 text-sm text-muted-foreground">
                 El código <span className="font-mono text-foreground">{result.code}</span> no
-                corresponde a ningún activo visible para ti.
+                está registrado en ningún sitio.
               </p>
               <Button className={`mt-4 w-full sm:w-auto ${TOUCH}`} onClick={() => setCreating(true)}>
                 <Plus className="mr-2 h-5 w-5" />
