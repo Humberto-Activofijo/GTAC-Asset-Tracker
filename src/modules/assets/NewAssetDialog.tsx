@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Camera, ImagePlus, Loader2, X } from "lucide-react";
+import { Camera, ImagePlus, Loader2, ScanLine, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/lib/image";
 import { useSelectedSite } from "@/modules/sites/SelectedSiteContext";
+import { ScanDialog } from "@/modules/scan/ScanDialog";
 import { ASSET_CONDITIONS, CONDITION_LABEL, type AssetCondition } from "./queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
