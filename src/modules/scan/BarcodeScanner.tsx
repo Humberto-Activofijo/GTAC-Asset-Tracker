@@ -3,7 +3,7 @@ import { CameraOff, Flashlight, FlashlightOff, Loader2, ScanLine, ScanSearch } f
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { createQrDecoder, type QrDecoder } from "./qrDecoder";
+import { createQrDecoder, QR_STAGES, type QrDecoder } from "./qrDecoder";
 
 /**
  * Escáner GTAC: componente único de cámara reutilizado por todos los flujos
@@ -25,6 +25,16 @@ const WANTED_FORMATS = [
 
 /** ~20 intentos por segundo con detector nativo. */
 const NATIVE_INTERVAL_MS = 50;
+/** ZXing QR en modo normal: ~8 intentos por segundo. */
+const ZXING_INTERVAL_MS = 125;
+/** jsQR en modo normal (solo tras el retraso adaptativo): ~2 intentos por segundo. */
+const JSQR_INTERVAL_MS = 500;
+/** jsQR en modo Etiqueta pequeña (alta precisión): ~3 intentos por segundo. */
+const JSQR_INTERVAL_SMALL_MS = 320;
+/** Tiempo sin encontrar QR antes de activar el modo QR difícil. */
+const HARD_MODE_AFTER_MS = 1000;
+/** Si un intento pesado supera este tiempo, se espacian los siguientes. */
+const SLOW_ATTEMPT_MS = 90;
 /** Proporción del lado analizado en la zona central. */
 const ROI_RATIO = 0.62;
 const DEDUPE_MS = 2000;
@@ -82,6 +92,12 @@ export function BarcodeScanner({
   const zxingRef = useRef<{ stop: () => void } | null>(null);
   const lastRef = useRef<{ code: string; at: number }>({ code: "", at: 0 });
   const runRef = useRef(0);
+  /** >0 cuando la decodificación está pausada (controles de cámara, pestaña oculta, detección). */
+  const pauseRef = useRef(0);
+  const frameCbRef = useRef<number | null>(null);
+  /** Métricas de rendimiento (frecuencias reales y coste medio por intento). */
+  const metricsRef = useRef({ zxing: 0, jsqr: 0, jsqrMs: 0, hardSince: 0, since: 0 });
+
 
   const [status, setStatus] = useState<"idle" | "starting" | "scanning" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -101,6 +117,8 @@ export function BarcodeScanner({
     frame: string;
     crop: string;
     resolution: string;
+    mode: string;
+    rates: string;
   } | null>(null);
 
   const detectedRef = useRef(onDetected);
@@ -123,28 +141,51 @@ export function BarcodeScanner({
       /* la vibración es opcional */
     }
     setHit(true);
-    window.setTimeout(() => setHit(false), 900);
+    // Detiene de inmediato cualquier otro intento pendiente mientras se entrega el resultado.
+    pauseRef.current += 1;
+    window.setTimeout(() => {
+      setHit(false);
+      pauseRef.current = Math.max(0, pauseRef.current - 1);
+    }, 900);
     detectedRef.current(code);
   }, []);
 
-  /** Aplica una restricción opcional sin romper la cámara si no existe. */
+  /**
+   * Aplica una restricción opcional sin romper la cámara si no existe.
+   * La decodificación se pausa mientras tanto: los controles responden al instante.
+   */
   const applyTrack = useCallback(async (constraint: MediaTrackConstraintSet) => {
     const track = trackRef.current;
     if (!track) return false;
+    pauseRef.current += 1;
     try {
       await track.applyConstraints({ advanced: [constraint] } as MediaTrackConstraints);
       return true;
     } catch {
       return false;
+    } finally {
+      pauseRef.current = Math.max(0, pauseRef.current - 1);
     }
   }, []);
 
   /** Limpieza explícita: timers, tracks, ZXing y referencias. */
   const stop = useCallback(() => {
     runRef.current += 1;
+    pauseRef.current = 0;
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
+    }
+    const vid = videoRef.current as
+      | (HTMLVideoElement & { cancelVideoFrameCallback?: (h: number) => void })
+      | null;
+    if (frameCbRef.current !== null) {
+      try {
+        vid?.cancelVideoFrameCallback?.(frameCbRef.current);
+      } catch {
+        /* ignorado */
+      }
+      frameCbRef.current = null;
     }
     try {
       zxingRef.current?.stop();
@@ -180,6 +221,125 @@ export function BarcodeScanner({
     engineRef.current?.(null);
     setStatus("idle");
   }, []);
+
+  /**
+   * Sincroniza el procesamiento con los frames reales del video cuando el
+   * navegador lo soporta; de lo contrario usa requestAnimationFrame.
+   */
+  const scheduleFrame = useCallback(
+    (video: HTMLVideoElement, cb: (ts: number) => void) => {
+      const rvfc = (
+        video as HTMLVideoElement & {
+          requestVideoFrameCallback?: (fn: (now: number) => void) => number;
+        }
+      ).requestVideoFrameCallback;
+      if (typeof rvfc === "function") {
+        frameCbRef.current = rvfc.call(video, (now: number) => cb(now));
+        return;
+      }
+      rafRef.current = requestAnimationFrame(cb);
+    },
+    [],
+  );
+
+  /**
+   * Motor QR de dos niveles sobre el mismo stream:
+   *  - Modo normal: solo ZXing QR sobre la zona central (bajo consumo).
+   *  - Modo QR difícil: se activa con Etiqueta pequeña o tras ~1 s sin lectura,
+   *    y habilita jsQR con variantes escalonadas (una por intento).
+   * La frecuencia de jsQR se adapta al rendimiento real del teléfono.
+   */
+  const makeQrEngine = useCallback(
+    (
+      qr: QrDecoder | null,
+      video: HTMLVideoElement,
+      cropCenter: () => HTMLCanvasElement | null,
+      fullFrame: () => HTMLCanvasElement | null,
+    ) => {
+      let firstMiss = 0;
+      let lastJs = 0;
+      let penalty = 1;
+      let stage = 0;
+      let lastDiagKey = "";
+      const m = metricsRef.current;
+      m.zxing = 0;
+      m.jsqr = 0;
+      m.jsqrMs = 0;
+      m.since = 0;
+
+      return {
+        zxingInterval: () => ZXING_INTERVAL_MS,
+        run(ts: number): string | null {
+          if (!qr) return null;
+          if (!m.since) m.since = ts;
+          const center = cropCenter();
+          const full = smallLabelRef.current ? null : fullFrame();
+
+          let hit: string | null = null;
+          if (center) hit = qr.decodeZxing(center);
+          if (!hit && full) hit = qr.decodeZxing(full);
+          m.zxing += 1;
+
+          const zxingHit = hit !== null;
+          const hard = smallLabelRef.current || (firstMiss > 0 && ts - firstMiss >= HARD_MODE_AFTER_MS);
+          if (zxingHit) {
+            firstMiss = 0;
+            stage = 0;
+          } else if (firstMiss === 0) {
+            firstMiss = ts;
+          }
+
+          // jsQR solo en modo QR difícil, con una variante por intento.
+          const base = smallLabelRef.current ? JSQR_INTERVAL_SMALL_MS : JSQR_INTERVAL_MS;
+          if (!hit && hard && qr.fallbackReady && ts - lastJs >= base * penalty) {
+            lastJs = ts;
+            const stageName = QR_STAGES[stage % QR_STAGES.length]!;
+            const t0 = performance.now();
+            if (center) hit = qr.decodeFallback(center, stageName);
+            if (!hit && full) hit = qr.decodeFallback(full, stageName);
+            const cost = performance.now() - t0;
+            m.jsqr += 1;
+            m.jsqrMs += cost;
+            // Adaptación al rendimiento: si el ciclo pesado tarda, se espacia el siguiente.
+            penalty = cost > SLOW_ATTEMPT_MS ? Math.min(4, penalty + 0.5) : Math.max(1, penalty - 0.25);
+            stage = hit ? 0 : stage + 1;
+          }
+
+          if (hit) {
+            firstMiss = 0;
+            stage = 0;
+          }
+
+          if (import.meta.env.DEV) {
+            const elapsed = Math.max(1, ts - m.since) / 1000;
+            const rates = `ZXing ${(m.zxing / elapsed).toFixed(1)}/s · jsQR ${(m.jsqr / elapsed).toFixed(1)}/s · ${
+              m.jsqr ? (m.jsqrMs / m.jsqr).toFixed(0) : 0
+            } ms`;
+            const mode = smallLabelRef.current ? "etiqueta pequeña" : hard ? "QR difícil" : "normal";
+            const frame = full ? `${full.width}×${full.height}` : `${video.videoWidth}×${video.videoHeight}`;
+            const crop = center ? `${center.width}×${center.height}` : "—";
+            const key = [zxingHit, mode, rates, frame, crop].join("|");
+            if (key !== lastDiagKey) {
+              lastDiagKey = key;
+              setDiag((d) =>
+                d ? { ...d, zxingHit, fallbackReady: qr.fallbackReady, mode, rates, frame, crop } : d,
+              );
+            }
+            (window as unknown as { __gtacScanMetrics?: unknown }).__gtacScanMetrics = {
+              zxingPerSecond: m.zxing / elapsed,
+              jsqrPerSecond: m.jsqr / elapsed,
+              jsqrAvgMs: m.jsqr ? m.jsqrMs / m.jsqr : 0,
+              mode,
+              worker: false,
+            };
+          }
+
+          return hit;
+        },
+      };
+    },
+    [],
+  );
 
   const start = useCallback(async () => {
     const token = ++runRef.current;
@@ -345,73 +505,34 @@ export function BarcodeScanner({
         frame: "—",
         crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
+        mode: "normal",
+        rates: "—",
       });
+
+      const engine = makeQrEngine(qr, video, cropCenter, fullFrame);
 
       let busy = false;
       let lastTick = 0;
+      let lastZxing = 0;
       let turn = 0;
-      let lastFallbackAt = 0;
-      let lastDiagKey = "";
-
-      /**
-       * Ruta 1 ZXing QR (~10/s). Si falla, ruta 2 jsQR (~4/s) sobre el recuadro
-       * central a resolución alta y, si procede, el frame completo.
-       */
-      const runQrPipeline = (ts: number): string | null => {
-        if (!qr) return null;
-        const center = cropCenter();
-        const full = smallLabelRef.current ? null : fullFrame();
-
-        let zxingHit: string | null = null;
-        if (center) zxingHit = qr.decodeZxing(center);
-        if (!zxingHit && full) zxingHit = qr.decodeZxing(full);
-
-        let fallbackHit: string | null = null;
-        const fallbackDue = qr.fallbackReady && ts - lastFallbackAt >= 250;
-        if (!zxingHit && fallbackDue) {
-          lastFallbackAt = ts;
-          if (center) fallbackHit = qr.decodeFallback(center);
-          if (!fallbackHit && full) fallbackHit = qr.decodeFallback(full);
-        }
-
-        if (import.meta.env.DEV) {
-          const key = [
-            zxingHit ? "si" : "no",
-            qr.fallbackReady ? "si" : "no",
-            full ? `${full.width}×${full.height}` : `${video.videoWidth}×${video.videoHeight}`,
-            center ? `${center.width}×${center.height}` : "—",
-          ].join("|");
-          if (key !== lastDiagKey) {
-            lastDiagKey = key;
-            setDiag((d) =>
-              d
-                ? {
-                    ...d,
-                    zxingHit: zxingHit !== null,
-                    fallbackReady: qr.fallbackReady,
-                    frame: key.split("|")[2] ?? "",
-                    crop: key.split("|")[3] ?? "",
-                  }
-                : d,
-            );
-          }
-        }
-
-        return zxingHit ?? fallbackHit;
-      };
 
       const loop = (ts: number) => {
         if (token !== runRef.current) return;
-        rafRef.current = requestAnimationFrame(loop);
-        if (busy || ts - lastTick < NATIVE_INTERVAL_MS) return;
+        scheduleFrame(video, loop);
+        // Sin trabajo si la pantalla no está activa, la pestaña está oculta o hay un control en curso.
+        if (busy || pauseRef.current > 0 || document.hidden) return;
+        if (ts - lastTick < NATIVE_INTERVAL_MS) return;
         lastTick = ts;
         turn += 1;
 
-        // Ciclos alternados sobre el MISMO video: QR dedicado y códigos de barras nativos.
-        if (qr && turn % 2 === 0) {
-          const hit = runQrPipeline(ts);
-          if (hit) handleCode(hit);
-          return;
+        // Ruta QR dedicada sobre el MISMO video, a su propia frecuencia.
+        if (qr && ts - lastZxing >= engine.zxingInterval()) {
+          lastZxing = ts;
+          const hit = engine.run(ts);
+          if (hit) {
+            handleCode(hit);
+            return;
+          }
         }
 
         busy = true;
@@ -427,7 +548,7 @@ export function BarcodeScanner({
             busy = false;
           });
       };
-      rafRef.current = requestAnimationFrame(loop);
+      scheduleFrame(video, loop);
       return;
     }
 
@@ -436,9 +557,11 @@ export function BarcodeScanner({
     try {
       const { BrowserMultiFormatReader } = await import("@zxing/browser");
       if (token !== runRef.current) return;
-      const reader = new BrowserMultiFormatReader(undefined, { delayBetweenScanAttempts: 80 });
+      const reader = new BrowserMultiFormatReader(undefined, { delayBetweenScanAttempts: 120 });
       const controls = await reader.decodeFromVideoElement(video, (result) => {
-        if (token === runRef.current && result) handleCode(result.getText());
+        if (token === runRef.current && result && pauseRef.current === 0 && !document.hidden) {
+          handleCode(result.getText());
+        }
       });
       if (token !== runRef.current) {
         controls.stop();
@@ -455,37 +578,30 @@ export function BarcodeScanner({
         frame: "—",
         crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
+        mode: "normal",
+        rates: "—",
       });
 
-      // Refuerzo jsQR (~4/s) sobre el mismo video para QR impresos difíciles.
+      // Refuerzo jsQR escalonado sobre el mismo video para QR impresos difíciles.
       if (qr?.fallbackReady) {
+        const engine = makeQrEngine(qr, video, cropCenter, fullFrame);
         let lastFb = 0;
         const fbLoop = (ts: number) => {
           if (token !== runRef.current) return;
-          rafRef.current = requestAnimationFrame(fbLoop);
-          if (ts - lastFb < 250) return;
+          scheduleFrame(video, fbLoop);
+          if (pauseRef.current > 0 || document.hidden) return;
+          if (ts - lastFb < engine.zxingInterval()) return;
           lastFb = ts;
-          const center = cropCenter();
-          const full = smallLabelRef.current ? null : fullFrame();
-          if (import.meta.env.DEV) {
-            const frame = full
-              ? `${full.width}×${full.height}`
-              : `${video.videoWidth}×${video.videoHeight}`;
-            const crop = center ? `${center.width}×${center.height}` : "—";
-            setDiag((d) => (d && (d.frame !== frame || d.crop !== crop) ? { ...d, frame, crop } : d));
-          }
-          const hit =
-            (center ? qr.decodeFallback(center) : null) ??
-            (full ? qr.decodeFallback(full) : null);
+          const hit = engine.run(ts);
           if (hit) handleCode(hit);
         };
-        rafRef.current = requestAnimationFrame(fbLoop);
+        scheduleFrame(video, fbLoop);
       }
     } catch {
       setMessage("Este navegador no puede leer códigos. Usa la captura manual.");
       setStatus("error");
     }
-  }, [applyTrack, handleCode]);
+  }, [applyTrack, handleCode, makeQrEngine, scheduleFrame]);
 
   useEffect(() => {
     if (active) void start();
@@ -497,17 +613,26 @@ export function BarcodeScanner({
     async (value: number) => {
       if (!caps?.zoom) return;
       const next = Math.min(caps.zoom.max, Math.max(caps.zoom.min, value));
+      const previous = zoom;
+      // Respuesta visual inmediata; se revierte si el hardware no acepta el valor.
+      setZoom(next);
       const ok = await applyTrack({ zoom: next } as MediaTrackConstraintSet);
-      if (ok) setZoom(next);
+      if (!ok) setZoom(previous);
     },
-    [applyTrack, caps],
+    [applyTrack, caps, zoom],
   );
 
+  const torchBusyRef = useRef(false);
+
   const toggleTorch = useCallback(async () => {
-    if (!caps?.torch) return;
+    if (!caps?.torch || torchBusyRef.current) return;
     const next = !torchOn;
+    torchBusyRef.current = true;
+    // El botón cambia al instante: no espera a la cadena de decodificación.
+    setTorchOn(next);
     const ok = await applyTrack({ torch: next } as MediaTrackConstraintSet);
-    if (ok) setTorchOn(next);
+    torchBusyRef.current = false;
+    if (!ok) setTorchOn(!next);
   }, [applyTrack, caps, torchOn]);
 
   /** Modo etiqueta pequeña: enfoque, zoom disponible y zona central. */
@@ -665,6 +790,9 @@ export function BarcodeScanner({
           <p>frame analizado: {diag.frame}</p>
           <p>recorte central: {diag.crop}</p>
           <p>resolución del stream: {diag.resolution}</p>
+          <p>modo de lectura QR: {diag.mode}</p>
+          <p>frecuencias: {diag.rates}</p>
+          <p>procesamiento: hilo principal</p>
         </div>
       )}
 
