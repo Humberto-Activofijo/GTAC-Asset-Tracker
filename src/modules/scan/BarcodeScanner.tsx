@@ -115,8 +115,10 @@ export function BarcodeScanner({
       });
     } catch (error) {
       const name = (error as { name?: string })?.name ?? "";
+      const detail = (error as { message?: string })?.message ?? "";
+      const denied = /permission|denied|denegad/i.test(detail);
       setMessage(
-        name === "NotAllowedError" || name === "SecurityError"
+        denied || name === "NotAllowedError" || name === "SecurityError"
           ? "Permiso de cámara denegado. Actívalo en el navegador o usa la captura manual."
           : name === "NotFoundError" || name === "OverconstrainedError"
             ? "No se encontró una cámara disponible. Usa la captura manual."
