@@ -171,23 +171,43 @@ export function NewAssetDialog({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="asset-number">Número de activo / Código QR *</Label>
-            <Input
-              id="asset-number"
-              value={form.assetNumber}
-              onChange={(e) => setForm((f) => ({ ...f, assetNumber: e.target.value }))}
-              placeholder="Ej. GTAC-000123"
-              autoFocus
-            />
+            <div className="flex gap-2">
+              <Input
+                id="asset-number"
+                value={form.assetNumber}
+                onChange={(e) => setForm((f) => ({ ...f, assetNumber: e.target.value }))}
+                placeholder="Ej. GTAC-000123"
+                autoFocus
+              />
+              <Button
+                type="button"
+                variant="outline"
+                aria-label="Escanear número de activo"
+                onClick={() => setScanField("assetNumber")}
+              >
+                <ScanLine className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="serial">Número de serie</Label>
-              <Input
-                id="serial"
-                value={form.serialNumber}
-                onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="serial"
+                  value={form.serialNumber}
+                  onChange={(e) => setForm((f) => ({ ...f, serialNumber: e.target.value }))}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-label="Escanear número de serie"
+                  onClick={() => setScanField("serialNumber")}
+                >
+                  <ScanLine className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="model">Modelo</Label>
