@@ -210,18 +210,27 @@ function InicioPage() {
             <Plus className="h-4 w-4" />
             Nuevo activo
           </button>
-          {QUICK_ACTIONS.map((action) => (
-            <div
-              key={action.label}
-              className="flex items-center gap-3 rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground"
-            >
-              <action.icon className="h-4 w-4" />
-              {action.label}
-            </div>
-          ))}
+          <Link
+            to="/escanear"
+            className="flex items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            <ScanLine className="h-4 w-4" />
+            Escanear activo
+          </Link>
+          <Link
+            to="/movimientos"
+            className="flex items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            <Package className="h-4 w-4" />
+            Ver movimientos
+          </Link>
+          <div className="flex items-center gap-3 rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
+            <FileText className="h-4 w-4" />
+            Generar reporte
+          </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Las acciones marcadas con línea punteada se habilitarán en fases posteriores.
+          Para registrar entrada, salida o inventario, escanea o busca el activo.
         </p>
       </section>
 
