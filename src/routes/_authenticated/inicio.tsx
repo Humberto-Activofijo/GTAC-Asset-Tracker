@@ -106,6 +106,7 @@ function InicioPage() {
   const { data: user } = useSuspenseQuery(currentUserQuery);
   const { sites, selectedSite, selectSite } = useSelectedSite();
   const online = useOnline();
+  const [creating, setCreating] = useState(false);
 
   return (
     <>
