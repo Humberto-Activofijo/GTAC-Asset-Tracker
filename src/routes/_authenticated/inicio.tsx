@@ -1,11 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { MapPin, Wifi, WifiOff, ScanLine, Package, FileText } from "lucide-react";
+import { MapPin, Wifi, WifiOff, ScanLine, Package, FileText, Plus, Loader2 } from "lucide-react";
 
 import { currentUserQuery } from "@/modules/auth/queries";
 import { useSelectedSite } from "@/modules/sites/SelectedSiteContext";
+import { recentAssetActivityQuery } from "@/modules/assets/queries";
+import { NewAssetDialog } from "@/modules/assets/NewAssetDialog";
 import { PageHeader } from "@/modules/layout/PageHeader";
+import { formatDateTime } from "@/lib/datetime";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
