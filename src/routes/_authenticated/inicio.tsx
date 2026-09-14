@@ -42,6 +42,62 @@ const QUICK_ACTIONS = [
   { label: "Generar reporte", icon: FileText },
 ];
 
+function RecentActivity() {
+  const activityQ = useQuery(recentAssetActivityQuery);
+
+  if (activityQ.isPending) {
+    return (
+      <div className="mt-4 flex justify-center rounded-lg border border-dashed border-border py-10">
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (activityQ.isError) {
+    return (
+      <p className="mt-4 rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-destructive">
+        No fue posible cargar la actividad reciente.
+      </p>
+    );
+  }
+
+  const rows = activityQ.data ?? [];
+  if (rows.length === 0) {
+    return (
+      <div className="mt-4 rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
+        Sin actividad registrada todavía.
+      </div>
+    );
+  }
+
+  return (
+    <ul className="mt-4 divide-y divide-border">
+      {rows.map((asset) => (
+        <li key={asset.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground">
+              <span className="mr-2 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-background">
+                Alta
+              </span>
+              <Link
+                to="/activos/$assetId"
+                params={{ assetId: asset.id }}
+                className="underline-offset-4 hover:underline"
+              >
+                {asset.asset_number}
+              </Link>
+            </p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {asset.site?.name ?? "Sitio sin nombre"} · {asset.created_by_email ?? "—"}
+            </p>
+          </div>
+          <span className="text-xs text-muted-foreground">{formatDateTime(asset.created_at)}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function InicioPage() {
   const { data: user } = useSuspenseQuery(currentUserQuery);
   const { sites, selectedSite, selectSite } = useSelectedSite();

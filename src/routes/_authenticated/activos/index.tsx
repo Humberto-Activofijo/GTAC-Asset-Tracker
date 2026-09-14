@@ -26,7 +26,7 @@ import {
 const PAGE_SIZE = 25;
 const ALL = "__all__";
 
-type AssetsSearch = { page: number; q: string; site: string; condition: string };
+type AssetsSearch = { page?: number; q?: string; site?: string; condition?: string };
 
 export const Route = createFileRoute("/_authenticated/activos/")({
   validateSearch: (search: Record<string, unknown>): AssetsSearch => ({
@@ -50,8 +50,8 @@ export const Route = createFileRoute("/_authenticated/activos/")({
 });
 
 function ActivosPage() {
-  const navigate = useNavigate({ from: "/activos" });
-  const { page, q, site, condition } = Route.useSearch();
+  const navigate = useNavigate({ from: "/activos/" });
+  const { page = 1, q = "", site = "", condition = "" } = Route.useSearch();
   const { sites } = useSelectedSite();
   const [term, setTerm] = useState(q);
   const [creating, setCreating] = useState(false);
