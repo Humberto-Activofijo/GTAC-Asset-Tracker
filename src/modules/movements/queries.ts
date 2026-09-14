@@ -150,10 +150,12 @@ export async function registerMovement(
   if (typeof input.latitude === "number") args["_latitude"] = input.latitude;
   if (typeof input.longitude === "number") args["_longitude"] = input.longitude;
 
-  const { data, error } = await supabase.rpc(
-    "register_movement",
-    args as Parameters<typeof supabase.rpc<"register_movement">>[1],
-  );
+  const { data, error } = await (
+    supabase.rpc as unknown as (
+      fn: string,
+      params: Record<string, unknown>,
+    ) => Promise<{ data: RegisterMovementResult[] | null; error: { message: string } | null }>
+  )("register_movement", args);
   if (error) throw new Error(error.message);
   const row = data?.[0];
   if (!row) throw new Error("No fue posible registrar el movimiento.");
