@@ -172,10 +172,15 @@ function InicioPage() {
 
       <section className="mt-6 rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground">Acciones rápidas</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Estas acciones se habilitarán en las siguientes fases.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-3 rounded-lg border border-foreground bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo activo
+          </button>
           {QUICK_ACTIONS.map((action) => (
             <div
               key={action.label}
@@ -186,14 +191,22 @@ function InicioPage() {
             </div>
           ))}
         </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Las acciones marcadas con línea punteada se habilitarán en fases posteriores.
+        </p>
       </section>
 
       <section className="mt-6 rounded-xl border border-border bg-card p-5">
-        <h2 className="text-sm font-semibold text-foreground">Actividad reciente</h2>
-        <div className="mt-4 rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-          Sin actividad registrada todavía.
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-foreground">Actividad reciente</h2>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/activos">Ver catálogo</Link>
+          </Button>
         </div>
+        <RecentActivity />
       </section>
+
+      <NewAssetDialog open={creating} onOpenChange={setCreating} />
     </>
   );
 }
