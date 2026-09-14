@@ -34,8 +34,15 @@ detección nativa (BarcodeDetector) con fallback ZXing, cámara trasera,
 captura manual, ficha del activo identificado, alta desde código
 inexistente y compresión de fotos en cliente (máx. 1600 px, ~JPEG 300 KB).
 
-## Fase 4 — pendiente
+## Fase 4 — completada
 
-Movimientos (entrada/salida/tránsito), inventarios, alertas +48 h,
-reportes, edición de activos desde la interfaz, carga masiva, correo y
-sincronización offline.
+Movimientos ENTRADA/SALIDA/INVENTARIO con tabla `movements`, estado
+EN_TRANSITO, RPC transaccional `register_movement` (permiso por sitio,
+idempotencia por client_operation_id, omisión de protocolo), acciones desde
+Escanear, línea de tiempo del activo, actividad reciente combinada y
+página /movimientos con filtros y paginación del lado del servidor.
+
+## Fase 5 — pendiente
+
+Alertas +48 h y tarea programada, correos, reportes y Excel, edición de
+activos desde la interfaz, carga masiva y sincronización offline.
