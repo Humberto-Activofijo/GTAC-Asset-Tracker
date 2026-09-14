@@ -340,6 +340,10 @@ export function BarcodeScanner({
         native: true,
         nativeQr: nativeQrSupported,
         qrRoute: qr ? "zxing" : nativeQrSupported ? "nativa" : "no disponible",
+        zxingHit: false,
+        fallbackReady: qr?.fallbackReady ?? false,
+        frame: "—",
+        crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
       });
 
