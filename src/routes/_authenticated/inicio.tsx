@@ -6,6 +6,7 @@ import { MapPin, Wifi, WifiOff, ScanLine, Package, FileText, Plus, Loader2 } fro
 import { currentUserQuery } from "@/modules/auth/queries";
 import { useSelectedSite } from "@/modules/sites/SelectedSiteContext";
 import { recentAssetActivityQuery } from "@/modules/assets/queries";
+import { ACTION_LABEL, recentMovementsQuery } from "@/modules/movements/queries";
 import { NewAssetDialog } from "@/modules/assets/NewAssetDialog";
 import { PageHeader } from "@/modules/layout/PageHeader";
 import { formatDateTime } from "@/lib/datetime";
@@ -40,16 +41,11 @@ function useOnline() {
   return online;
 }
 
-const QUICK_ACTIONS = [
-  { label: "Escanear activo", icon: ScanLine },
-  { label: "Registrar movimiento", icon: Package },
-  { label: "Generar reporte", icon: FileText },
-];
-
 function RecentActivity() {
-  const activityQ = useQuery(recentAssetActivityQuery);
+  const altasQ = useQuery(recentAssetActivityQuery);
+  const movimientosQ = useQuery(recentMovementsQuery);
 
-  if (activityQ.isPending) {
+  if (altasQ.isPending || movimientosQ.isPending) {
     return (
       <div className="mt-4 flex justify-center rounded-lg border border-dashed border-border py-10">
         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
@@ -57,7 +53,7 @@ function RecentActivity() {
     );
   }
 
-  if (activityQ.isError) {
+  if (altasQ.isError || movimientosQ.isError) {
     return (
       <p className="mt-4 rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-destructive">
         No fue posible cargar la actividad reciente.
@@ -65,8 +61,40 @@ function RecentActivity() {
     );
   }
 
-  const rows = activityQ.data ?? [];
-  if (rows.length === 0) {
+  type Entry = {
+    key: string;
+    label: string;
+    assetId: string;
+    assetNumber: string;
+    site: string;
+    user: string;
+    at: string;
+  };
+
+  const entries: Entry[] = [
+    ...(altasQ.data ?? []).map((asset) => ({
+      key: `alta-${asset.id}`,
+      label: "Alta",
+      assetId: asset.id,
+      assetNumber: asset.asset_number,
+      site: asset.site?.name ?? "Sitio sin nombre",
+      user: asset.created_by_email ?? "—",
+      at: asset.created_at,
+    })),
+    ...(movimientosQ.data ?? []).map((m) => ({
+      key: `mov-${m.id}`,
+      label: ACTION_LABEL[m.action],
+      assetId: m.asset_id,
+      assetNumber: m.asset_number,
+      site: m.site_name,
+      user: m.performed_by_email ?? "—",
+      at: m.occurred_at,
+    })),
+  ]
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .slice(0, 10);
+
+  if (entries.length === 0) {
     return (
       <div className="mt-4 rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
         Sin actividad registrada todavía.
@@ -76,26 +104,26 @@ function RecentActivity() {
 
   return (
     <ul className="mt-4 divide-y divide-border">
-      {rows.map((asset) => (
-        <li key={asset.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+      {entries.map((entry) => (
+        <li key={entry.key} className="flex flex-wrap items-center justify-between gap-2 py-3">
           <div className="min-w-0">
             <p className="text-sm font-medium text-foreground">
               <span className="mr-2 rounded-full bg-foreground px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-background">
-                Alta
+                {entry.label}
               </span>
               <Link
                 to="/activos/$assetId"
-                params={{ assetId: asset.id }}
+                params={{ assetId: entry.assetId }}
                 className="underline-offset-4 hover:underline"
               >
-                {asset.asset_number}
+                {entry.assetNumber}
               </Link>
             </p>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {asset.site?.name ?? "Sitio sin nombre"} · {asset.created_by_email ?? "—"}
+              {entry.site} · {entry.user}
             </p>
           </div>
-          <span className="text-xs text-muted-foreground">{formatDateTime(asset.created_at)}</span>
+          <span className="text-xs text-muted-foreground">{formatDateTime(entry.at)}</span>
         </li>
       ))}
     </ul>
@@ -182,18 +210,27 @@ function InicioPage() {
             <Plus className="h-4 w-4" />
             Nuevo activo
           </button>
-          {QUICK_ACTIONS.map((action) => (
-            <div
-              key={action.label}
-              className="flex items-center gap-3 rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground"
-            >
-              <action.icon className="h-4 w-4" />
-              {action.label}
-            </div>
-          ))}
+          <Link
+            to="/escanear"
+            className="flex items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            <ScanLine className="h-4 w-4" />
+            Escanear activo
+          </Link>
+          <Link
+            to="/movimientos"
+            className="flex items-center gap-3 rounded-lg border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+          >
+            <Package className="h-4 w-4" />
+            Ver movimientos
+          </Link>
+          <div className="flex items-center gap-3 rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
+            <FileText className="h-4 w-4" />
+            Generar reporte
+          </div>
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Las acciones marcadas con línea punteada se habilitarán en fases posteriores.
+          Para registrar entrada, salida o inventario, escanea o busca el activo.
         </p>
       </section>
 

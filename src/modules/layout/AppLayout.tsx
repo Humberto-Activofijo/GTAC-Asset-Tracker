@@ -13,6 +13,7 @@ import {
   LogOut,
   KeyRound,
   ChevronDown,
+  ArrowLeftRight,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -34,6 +35,7 @@ const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/sitios", label: "Sitios", icon: MapPin },
   { to: "/activos", label: "Activos", icon: Package },
+  { to: "/movimientos", label: "Movimientos", icon: ArrowLeftRight },
   { to: "/ingenieros", label: "Ingenieros", icon: Users },
   { to: "/alertas", label: "Alertas", icon: Bell },
   { to: "/reportes", label: "Reportes", icon: FileText },

@@ -9,6 +9,7 @@ import {
   assetDetailQuery,
   getPhotoSignedUrl,
 } from "@/modules/assets/queries";
+import { MovementTimeline } from "@/modules/movements/MovementTimeline";
 import { PageHeader } from "@/modules/layout/PageHeader";
 import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
@@ -142,9 +143,7 @@ function AssetDetailPage() {
 
       <section className="mt-4 rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground">Historial del activo</h2>
-        <p className="mt-4 rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-          Aún no hay movimientos registrados.
-        </p>
+        <MovementTimeline assetId={asset.id} />
       </section>
     </>
   );

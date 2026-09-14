@@ -9,6 +9,12 @@ import { AssetSummaryCard } from "@/modules/assets/AssetSummaryCard";
 import { NewAssetDialog } from "@/modules/assets/NewAssetDialog";
 import { lookupAssetByCode, normalizeCode, type LookupResult } from "@/modules/assets/lookup";
 import { BarcodeScanner, type ScanEngine } from "@/modules/scan/BarcodeScanner";
+import { MovementDialog } from "@/modules/movements/MovementDialog";
+import {
+  ACTION_LABEL,
+  MOVEMENT_ACTIONS,
+  type MovementAction,
+} from "@/modules/movements/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +54,7 @@ function ScanPage() {
   const [engine, setEngine] = useState<ScanEngine | null>(null);
   const [result, setResult] = useState<LookupResult | null>(null);
   const [creating, setCreating] = useState(false);
+  const [movementAction, setMovementAction] = useState<MovementAction | null>(null);
 
   const lookup = useMutation({
     mutationFn: (code: string) => lookupAssetByCode(code),
@@ -198,6 +205,39 @@ function ScanPage() {
                 <p className="mt-2 text-xs text-muted-foreground">
                   Encontrado por número de serie.
                 </p>
+              )}
+
+              <section className="mt-4 rounded-xl border border-border bg-card p-5">
+                <h2 className="text-sm font-semibold text-foreground">Registrar movimiento</h2>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {MOVEMENT_ACTIONS.map((a) => (
+                    <Button
+                      key={a}
+                      variant={a === "SALIDA" ? "outline" : a === "INVENTARIO" ? "secondary" : "default"}
+                      className={TOUCH}
+                      onClick={() => setMovementAction(a)}
+                    >
+                      {ACTION_LABEL[a]}
+                    </Button>
+                  ))}
+                </div>
+              </section>
+
+              {movementAction && (
+                <MovementDialog
+                  open
+                  onOpenChange={(v) => {
+                    if (!v) setMovementAction(null);
+                  }}
+                  action={movementAction}
+                  asset={result.asset}
+                  siteId={selectedSite.id}
+                  siteName={selectedSite.name}
+                  onRegistered={() => {
+                    setMovementAction(null);
+                    if (result.code) lookup.mutate(result.code);
+                  }}
+                />
               )}
             </>
           ) : (

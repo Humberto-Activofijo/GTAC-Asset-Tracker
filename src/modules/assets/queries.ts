@@ -13,6 +13,7 @@ export const CONDITION_LABEL: Record<AssetCondition, string> = {
 
 export const STATUS_LABEL: Record<string, string> = {
   EN_SITIO: "En sitio",
+  EN_TRANSITO: "En tránsito",
 };
 
 export type AssetRow = {
