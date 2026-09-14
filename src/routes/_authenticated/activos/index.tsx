@@ -26,7 +26,7 @@ import {
 const PAGE_SIZE = 25;
 const ALL = "__all__";
 
-type AssetsSearch = { page: number; q: string; site: string; condition: string };
+type AssetsSearch = { page?: number; q?: string; site?: string; condition?: string };
 
 export const Route = createFileRoute("/_authenticated/activos/")({
   validateSearch: (search: Record<string, unknown>): AssetsSearch => ({
