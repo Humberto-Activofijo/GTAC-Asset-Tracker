@@ -73,10 +73,14 @@ export function NewAssetDialog({
 
   useEffect(() => {
     if (!open) return;
-    setForm({ ...EMPTY, siteId: selectedSite?.id ?? selectableSites[0]?.id ?? "" });
+    setForm({
+      ...EMPTY,
+      assetNumber: initialAssetNumber,
+      siteId: initialSiteId ?? selectedSite?.id ?? selectableSites[0]?.id ?? "",
+    });
     setPhoto(null);
     setPhotoPreview(null);
-  }, [open, selectedSite, selectableSites]);
+  }, [open, selectedSite, selectableSites, initialAssetNumber, initialSiteId]);
 
   useEffect(() => {
     if (!photo) {
