@@ -401,6 +401,12 @@ export function BarcodeScanner({
       }
       zxingRef.current = controls;
       engineRef.current?.("fallback");
+      setDiag({
+        native: false,
+        nativeQr: false,
+        qrRoute: "zxing",
+        resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
+      });
     } catch {
       setMessage("Este navegador no puede leer códigos. Usa la captura manual.");
       setStatus("error");
