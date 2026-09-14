@@ -199,6 +199,39 @@ function ScanPage() {
                   Encontrado por número de serie.
                 </p>
               )}
+
+              <section className="mt-4 rounded-xl border border-border bg-card p-5">
+                <h2 className="text-sm font-semibold text-foreground">Registrar movimiento</h2>
+                <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {MOVEMENT_ACTIONS.map((a) => (
+                    <Button
+                      key={a}
+                      variant={a === "SALIDA" ? "outline" : a === "INVENTARIO" ? "secondary" : "default"}
+                      className={TOUCH}
+                      onClick={() => setMovementAction(a)}
+                    >
+                      {ACTION_LABEL[a]}
+                    </Button>
+                  ))}
+                </div>
+              </section>
+
+              {movementAction && (
+                <MovementDialog
+                  open
+                  onOpenChange={(v) => {
+                    if (!v) setMovementAction(null);
+                  }}
+                  action={movementAction}
+                  asset={result.asset}
+                  siteId={selectedSite.id}
+                  siteName={selectedSite.name}
+                  onRegistered={() => {
+                    setMovementAction(null);
+                    if (result.code) lookup.mutate(result.code);
+                  }}
+                />
+              )}
             </>
           ) : (
             <section className="rounded-xl border border-border bg-card p-5 text-center">
