@@ -96,6 +96,10 @@ export function BarcodeScanner({
     native: boolean;
     nativeQr: boolean;
     qrRoute: "zxing" | "nativa" | "no disponible";
+    zxingHit: boolean;
+    fallbackReady: boolean;
+    frame: string;
+    crop: string;
     resolution: string;
   } | null>(null);
 
@@ -336,12 +340,65 @@ export function BarcodeScanner({
         native: true,
         nativeQr: nativeQrSupported,
         qrRoute: qr ? "zxing" : nativeQrSupported ? "nativa" : "no disponible",
+        zxingHit: false,
+        fallbackReady: qr?.fallbackReady ?? false,
+        frame: "—",
+        crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
       });
 
       let busy = false;
       let lastTick = 0;
       let turn = 0;
+      let lastFallbackAt = 0;
+      let lastDiagKey = "";
+
+      /**
+       * Ruta 1 ZXing QR (~10/s). Si falla, ruta 2 jsQR (~4/s) sobre el recuadro
+       * central a resolución alta y, si procede, el frame completo.
+       */
+      const runQrPipeline = (ts: number): string | null => {
+        if (!qr) return null;
+        const center = cropCenter();
+        const full = smallLabelRef.current ? null : fullFrame();
+
+        let zxingHit: string | null = null;
+        if (center) zxingHit = qr.decodeZxing(center);
+        if (!zxingHit && full) zxingHit = qr.decodeZxing(full);
+
+        let fallbackHit: string | null = null;
+        const fallbackDue = qr.fallbackReady && ts - lastFallbackAt >= 250;
+        if (!zxingHit && fallbackDue) {
+          lastFallbackAt = ts;
+          if (center) fallbackHit = qr.decodeFallback(center);
+          if (!fallbackHit && full) fallbackHit = qr.decodeFallback(full);
+        }
+
+        if (import.meta.env.DEV) {
+          const key = [
+            zxingHit ? "si" : "no",
+            qr.fallbackReady ? "si" : "no",
+            full ? `${full.width}×${full.height}` : `${video.videoWidth}×${video.videoHeight}`,
+            center ? `${center.width}×${center.height}` : "—",
+          ].join("|");
+          if (key !== lastDiagKey) {
+            lastDiagKey = key;
+            setDiag((d) =>
+              d
+                ? {
+                    ...d,
+                    zxingHit: zxingHit !== null,
+                    fallbackReady: qr.fallbackReady,
+                    frame: key.split("|")[2] ?? "",
+                    crop: key.split("|")[3] ?? "",
+                  }
+                : d,
+            );
+          }
+        }
+
+        return zxingHit ?? fallbackHit;
+      };
 
       const loop = (ts: number) => {
         if (token !== runRef.current) return;
@@ -352,20 +409,8 @@ export function BarcodeScanner({
 
         // Ciclos alternados sobre el MISMO video: QR dedicado y códigos de barras nativos.
         if (qr && turn % 2 === 0) {
-          const center = cropCenter();
-          const centerHit = center ? qr.decode(center) : null;
-          if (centerHit) {
-            handleCode(centerHit);
-            return;
-          }
-          if (!smallLabelRef.current && turn % 4 === 0) {
-            const full = fullFrame();
-            const fullHit = full ? qr.decode(full) : null;
-            if (fullHit) {
-              handleCode(fullHit);
-              return;
-            }
-          }
+          const hit = runQrPipeline(ts);
+          if (hit) handleCode(hit);
           return;
         }
 
@@ -405,8 +450,37 @@ export function BarcodeScanner({
         native: false,
         nativeQr: false,
         qrRoute: "zxing",
+        zxingHit: false,
+        fallbackReady: qr?.fallbackReady ?? false,
+        frame: "—",
+        crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
       });
+
+      // Refuerzo jsQR (~4/s) sobre el mismo video para QR impresos difíciles.
+      if (qr?.fallbackReady) {
+        let lastFb = 0;
+        const fbLoop = (ts: number) => {
+          if (token !== runRef.current) return;
+          rafRef.current = requestAnimationFrame(fbLoop);
+          if (ts - lastFb < 250) return;
+          lastFb = ts;
+          const center = cropCenter();
+          const full = smallLabelRef.current ? null : fullFrame();
+          if (import.meta.env.DEV) {
+            const frame = full
+              ? `${full.width}×${full.height}`
+              : `${video.videoWidth}×${video.videoHeight}`;
+            const crop = center ? `${center.width}×${center.height}` : "—";
+            setDiag((d) => (d && (d.frame !== frame || d.crop !== crop) ? { ...d, frame, crop } : d));
+          }
+          const hit =
+            (center ? qr.decodeFallback(center) : null) ??
+            (full ? qr.decodeFallback(full) : null);
+          if (hit) handleCode(hit);
+        };
+        rafRef.current = requestAnimationFrame(fbLoop);
+      }
     } catch {
       setMessage("Este navegador no puede leer códigos. Usa la captura manual.");
       setStatus("error");
@@ -586,6 +660,10 @@ export function BarcodeScanner({
           <p>detector nativo activo: {diag.native ? "sí" : "no"}</p>
           <p>QR nativo soportado: {diag.nativeQr ? "sí" : "no"}</p>
           <p>ruta QR activa: {diag.qrRoute}</p>
+          <p>QR ZXing: {diag.zxingHit ? "detectado" : "no"}</p>
+          <p>QR fallback: {diag.fallbackReady ? "jsQR activo" : "no disponible"}</p>
+          <p>frame analizado: {diag.frame}</p>
+          <p>recorte central: {diag.crop}</p>
           <p>resolución del stream: {diag.resolution}</p>
         </div>
       )}
