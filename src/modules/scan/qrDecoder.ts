@@ -13,11 +13,18 @@ type JsQrFn = (
   options?: { inversionAttempts?: "dontInvert" | "onlyInvert" | "attemptBoth" | "invertFirst" },
 ) => { data: string } | null;
 
+/**
+ * Etapas escalonadas de la ruta jsQR: se genera una sola variante por intento,
+ * de la más barata a la más costosa, para no cargar el hilo principal.
+ */
+export const QR_STAGES = ["original", "contraste", "binarizada", "ampliada"] as const;
+export type QrStage = (typeof QR_STAGES)[number];
+
 export type QrDecoder = {
   /** Ruta 1: ZXing QR. */
   decodeZxing: (canvas: HTMLCanvasElement) => string | null;
-  /** Ruta 2: jsQR, con intento adicional sobre una versión de contraste mejorado. */
-  decodeFallback: (canvas: HTMLCanvasElement) => string | null;
+  /** Ruta 2: jsQR, una sola etapa por llamada. */
+  decodeFallback: (canvas: HTMLCanvasElement, stage?: QrStage) => string | null;
   fallbackReady: boolean;
   reset: () => void;
 };
