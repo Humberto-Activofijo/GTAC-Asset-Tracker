@@ -96,6 +96,10 @@ export function BarcodeScanner({
     native: boolean;
     nativeQr: boolean;
     qrRoute: "zxing" | "nativa" | "no disponible";
+    zxingHit: boolean;
+    fallbackReady: boolean;
+    frame: string;
+    crop: string;
     resolution: string;
   } | null>(null);
 
