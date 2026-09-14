@@ -112,6 +112,106 @@ export type Database = {
           },
         ]
       }
+      movements: {
+        Row: {
+          action: Database["public"]["Enums"]["movement_action"]
+          asset_id: string
+          asset_number: string
+          client_operation_id: string
+          condition: Database["public"]["Enums"]["asset_condition"]
+          created_at: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          notes: string | null
+          occurred_at: string
+          performed_by: string
+          performed_by_email: string | null
+          photo_url: string | null
+          previous_condition:
+            | Database["public"]["Enums"]["asset_condition"]
+            | null
+          previous_site_id: string | null
+          previous_site_name: string | null
+          previous_status: Database["public"]["Enums"]["asset_status"] | null
+          protocol_omission: boolean
+          site_id: string
+          site_name: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["movement_action"]
+          asset_id: string
+          asset_number: string
+          client_operation_id: string
+          condition: Database["public"]["Enums"]["asset_condition"]
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          occurred_at?: string
+          performed_by: string
+          performed_by_email?: string | null
+          photo_url?: string | null
+          previous_condition?:
+            | Database["public"]["Enums"]["asset_condition"]
+            | null
+          previous_site_id?: string | null
+          previous_site_name?: string | null
+          previous_status?: Database["public"]["Enums"]["asset_status"] | null
+          protocol_omission?: boolean
+          site_id: string
+          site_name: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["movement_action"]
+          asset_id?: string
+          asset_number?: string
+          client_operation_id?: string
+          condition?: Database["public"]["Enums"]["asset_condition"]
+          created_at?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          notes?: string | null
+          occurred_at?: string
+          performed_by?: string
+          performed_by_email?: string | null
+          photo_url?: string | null
+          previous_condition?:
+            | Database["public"]["Enums"]["asset_condition"]
+            | null
+          previous_site_id?: string | null
+          previous_site_name?: string | null
+          previous_status?: Database["public"]["Enums"]["asset_status"] | null
+          protocol_omission?: boolean
+          site_id?: string
+          site_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movements_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movements_previous_site_id_fkey"
+            columns: ["previous_site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movements_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pending_engineer_sites: {
         Row: {
           active: boolean
@@ -300,11 +400,32 @@ export type Database = {
           status: Database["public"]["Enums"]["asset_status"]
         }[]
       }
+      register_movement: {
+        Args: {
+          _action: string
+          _asset_id: string
+          _client_operation_id: string
+          _condition?: string
+          _latitude?: number
+          _longitude?: number
+          _notes?: string
+          _photo_url?: string
+          _site_id: string
+        }
+        Returns: {
+          duplicate: boolean
+          movement_id: string
+          new_site_id: string
+          new_status: Database["public"]["Enums"]["asset_status"]
+          protocol_omission: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "engineer"
       asset_condition: "ACTIVO" | "DESCONECTADO" | "DANADO"
       asset_status: "EN_SITIO" | "EN_TRANSITO"
+      movement_action: "ENTRADA" | "SALIDA" | "INVENTARIO"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -435,6 +556,7 @@ export const Constants = {
       app_role: ["admin", "engineer"],
       asset_condition: ["ACTIVO", "DESCONECTADO", "DANADO"],
       asset_status: ["EN_SITIO", "EN_TRANSITO"],
+      movement_action: ["ENTRADA", "SALIDA", "INVENTARIO"],
     },
   },
 } as const
