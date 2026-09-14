@@ -73,7 +73,7 @@ function AssetDetailPage() {
           No encontramos este activo o no tienes permiso para verlo.
           <div className="mt-4">
             <Button asChild variant="outline">
-              <Link to="/activos">Volver al catálogo</Link>
+              <Link to="/activos/">Volver al catálogo</Link>
             </Button>
           </div>
         </div>
@@ -90,7 +90,7 @@ function AssetDetailPage() {
         description="Ficha del activo"
         action={
           <Button asChild variant="outline">
-            <Link to="/activos">
+            <Link to="/activos/">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver
             </Link>
