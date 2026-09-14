@@ -577,6 +577,19 @@ export function BarcodeScanner({
         </label>
       )}
 
+      {/* Diagnóstico temporal: solo visible en desarrollo. */}
+      {import.meta.env.DEV && diag && (
+        <div
+          data-testid="scan-diagnostics"
+          className="rounded-lg border border-dashed border-border p-3 font-mono text-xs text-muted-foreground"
+        >
+          <p>detector nativo activo: {diag.native ? "sí" : "no"}</p>
+          <p>QR nativo soportado: {diag.nativeQr ? "sí" : "no"}</p>
+          <p>ruta QR activa: {diag.qrRoute}</p>
+          <p>resolución del stream: {diag.resolution}</p>
+        </div>
+      )}
+
       {status === "error" && message && (
         <p role="alert" className="text-sm text-destructive">
           {message}
