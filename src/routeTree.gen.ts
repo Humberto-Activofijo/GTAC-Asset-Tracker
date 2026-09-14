@@ -19,6 +19,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedEscanearRouteImport } from './routes/_authenticated/escanear'
 import { Route as AuthenticatedIngenierosRouteImport } from './routes/_authenticated/ingenieros'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedMovimientosRouteImport } from './routes/_authenticated/movimientos'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedSitiosRouteImport } from './routes/_authenticated/sitios'
 import { Route as AuthenticatedActivosIndexRouteImport } from './routes/_authenticated/activos/index'
@@ -73,6 +74,12 @@ const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
   path: '/inicio',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMovimientosRoute =
+  AuthenticatedMovimientosRouteImport.update({
+    id: '/movimientos',
+    path: '/movimientos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedReportesRoute = AuthenticatedReportesRouteImport.update({
   id: '/reportes',
   path: '/reportes',
@@ -106,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/escanear': typeof AuthenticatedEscanearRoute
   '/ingenieros': typeof AuthenticatedIngenierosRoute
   '/inicio': typeof AuthenticatedInicioRoute
+  '/movimientos': typeof AuthenticatedMovimientosRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
@@ -121,6 +129,7 @@ export interface FileRoutesByTo {
   '/escanear': typeof AuthenticatedEscanearRoute
   '/ingenieros': typeof AuthenticatedIngenierosRoute
   '/inicio': typeof AuthenticatedInicioRoute
+  '/movimientos': typeof AuthenticatedMovimientosRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
@@ -138,6 +147,7 @@ export interface FileRoutesById {
   '/_authenticated/escanear': typeof AuthenticatedEscanearRoute
   '/_authenticated/ingenieros': typeof AuthenticatedIngenierosRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/movimientos': typeof AuthenticatedMovimientosRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/sitios': typeof AuthenticatedSitiosRoute
   '/_authenticated/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/escanear'
     | '/ingenieros'
     | '/inicio'
+    | '/movimientos'
     | '/reportes'
     | '/sitios'
     | '/activos/$assetId'
@@ -170,6 +181,7 @@ export interface FileRouteTypes {
     | '/escanear'
     | '/ingenieros'
     | '/inicio'
+    | '/movimientos'
     | '/reportes'
     | '/sitios'
     | '/activos/$assetId'
@@ -186,6 +198,7 @@ export interface FileRouteTypes {
     | '/_authenticated/escanear'
     | '/_authenticated/ingenieros'
     | '/_authenticated/inicio'
+    | '/_authenticated/movimientos'
     | '/_authenticated/reportes'
     | '/_authenticated/sitios'
     | '/_authenticated/activos/$assetId'
@@ -271,6 +284,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInicioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/movimientos': {
+      id: '/_authenticated/movimientos'
+      path: '/movimientos'
+      fullPath: '/movimientos'
+      preLoaderRoute: typeof AuthenticatedMovimientosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/reportes': {
       id: '/_authenticated/reportes'
       path: '/reportes'
@@ -309,6 +329,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEscanearRoute: typeof AuthenticatedEscanearRoute
   AuthenticatedIngenierosRoute: typeof AuthenticatedIngenierosRoute
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedMovimientosRoute: typeof AuthenticatedMovimientosRoute
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedSitiosRoute: typeof AuthenticatedSitiosRoute
   AuthenticatedActivosAssetIdRoute: typeof AuthenticatedActivosAssetIdRoute
@@ -322,6 +343,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEscanearRoute: AuthenticatedEscanearRoute,
   AuthenticatedIngenierosRoute: AuthenticatedIngenierosRoute,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+  AuthenticatedMovimientosRoute: AuthenticatedMovimientosRoute,
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedSitiosRoute: AuthenticatedSitiosRoute,
   AuthenticatedActivosAssetIdRoute: AuthenticatedActivosAssetIdRoute,
