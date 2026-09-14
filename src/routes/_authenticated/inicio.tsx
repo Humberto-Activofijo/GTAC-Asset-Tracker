@@ -6,6 +6,7 @@ import { MapPin, Wifi, WifiOff, ScanLine, Package, FileText, Plus, Loader2 } fro
 import { currentUserQuery } from "@/modules/auth/queries";
 import { useSelectedSite } from "@/modules/sites/SelectedSiteContext";
 import { recentAssetActivityQuery } from "@/modules/assets/queries";
+import { ACTION_LABEL, recentMovementsQuery } from "@/modules/movements/queries";
 import { NewAssetDialog } from "@/modules/assets/NewAssetDialog";
 import { PageHeader } from "@/modules/layout/PageHeader";
 import { formatDateTime } from "@/lib/datetime";
