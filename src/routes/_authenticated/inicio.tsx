@@ -1,11 +1,15 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { MapPin, Wifi, WifiOff, ScanLine, Package, FileText } from "lucide-react";
+import { MapPin, Wifi, WifiOff, ScanLine, Package, FileText, Plus, Loader2 } from "lucide-react";
 
 import { currentUserQuery } from "@/modules/auth/queries";
 import { useSelectedSite } from "@/modules/sites/SelectedSiteContext";
+import { recentAssetActivityQuery } from "@/modules/assets/queries";
+import { NewAssetDialog } from "@/modules/assets/NewAssetDialog";
 import { PageHeader } from "@/modules/layout/PageHeader";
+import { formatDateTime } from "@/lib/datetime";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/inicio")({
@@ -102,6 +106,7 @@ function InicioPage() {
   const { data: user } = useSuspenseQuery(currentUserQuery);
   const { sites, selectedSite, selectSite } = useSelectedSite();
   const online = useOnline();
+  const [creating, setCreating] = useState(false);
 
   return (
     <>
@@ -168,10 +173,15 @@ function InicioPage() {
 
       <section className="mt-6 rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground">Acciones rápidas</h2>
-        <p className="mt-1 text-xs text-muted-foreground">
-          Estas acciones se habilitarán en las siguientes fases.
-        </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <button
+            type="button"
+            onClick={() => setCreating(true)}
+            className="flex items-center gap-3 rounded-lg border border-foreground bg-foreground px-4 py-3 text-sm font-medium text-background transition-opacity hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            Nuevo activo
+          </button>
           {QUICK_ACTIONS.map((action) => (
             <div
               key={action.label}
@@ -182,14 +192,22 @@ function InicioPage() {
             </div>
           ))}
         </div>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Las acciones marcadas con línea punteada se habilitarán en fases posteriores.
+        </p>
       </section>
 
       <section className="mt-6 rounded-xl border border-border bg-card p-5">
-        <h2 className="text-sm font-semibold text-foreground">Actividad reciente</h2>
-        <div className="mt-4 rounded-lg border border-dashed border-border px-4 py-10 text-center text-sm text-muted-foreground">
-          Sin actividad registrada todavía.
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-semibold text-foreground">Actividad reciente</h2>
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/activos">Ver catálogo</Link>
+          </Button>
         </div>
+        <RecentActivity />
       </section>
+
+      <NewAssetDialog open={creating} onOpenChange={setCreating} />
     </>
   );
 }
