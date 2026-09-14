@@ -50,9 +50,15 @@ function extensionOf(file: File): string {
 export function NewAssetDialog({
   open,
   onOpenChange,
+  initialAssetNumber = "",
+  initialSiteId,
+  onCreated,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialAssetNumber?: string;
+  initialSiteId?: string;
+  onCreated?: (assetId: string) => void;
 }) {
   const queryClient = useQueryClient();
   const { sites, selectedSite } = useSelectedSite();
