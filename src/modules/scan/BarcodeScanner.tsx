@@ -272,12 +272,52 @@ export function BarcodeScanner({
     }
     if (token !== runRef.current) return;
 
+    // Recorte central a resolución real: conserva el detalle de etiquetas pequeñas.
+    const cropCenter = (max = 1200): HTMLCanvasElement | null => {
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      if (!vw || !vh) return null;
+      const side = Math.round(Math.min(vw, vh) * ROI_RATIO);
+      const out = Math.min(side, max);
+      const canvas = canvasRef.current ?? document.createElement("canvas");
+      canvasRef.current = canvas;
+      canvas.width = out;
+      canvas.height = out;
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return null;
+      ctx.drawImage(video, (vw - side) / 2, (vh - side) / 2, side, side, 0, 0, out, out);
+      return canvas;
+    };
+
+    // Frame completo con resolución suficiente para QR medianos y grandes.
+    const fullFrame = (max = 1280): HTMLCanvasElement | null => {
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+      if (!vw || !vh) return null;
+      const scale = Math.min(1, max / Math.max(vw, vh));
+      const canvas = fullCanvasRef.current ?? document.createElement("canvas");
+      fullCanvasRef.current = canvas;
+      canvas.width = Math.round(vw * scale);
+      canvas.height = Math.round(vh * scale);
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+      if (!ctx) return null;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      return canvas;
+    };
+
+    // Ruta QR dedicada (ZXing solo con formato QR_CODE) sobre el mismo stream.
+    const qr = await createQrDecoder();
+    if (token !== runRef.current) return;
+    qrRef.current = qr;
+
     const Detector = getNativeDetector();
+    let nativeQrSupported = false;
     if (Detector) {
       let formats = WANTED_FORMATS;
       try {
         const supported = await Detector.getSupportedFormats?.();
         if (supported?.length) {
+          nativeQrSupported = supported.includes("qr_code");
           const usable = WANTED_FORMATS.filter((f) => supported.includes(f));
           if (usable.length) formats = usable;
         }
@@ -292,37 +332,45 @@ export function BarcodeScanner({
       }
       if (token !== runRef.current) return;
       engineRef.current?.("native");
+      setDiag({
+        native: true,
+        nativeQr: nativeQrSupported,
+        qrRoute: qr ? "zxing" : nativeQrSupported ? "nativa" : "no disponible",
+        resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
+      });
 
       let busy = false;
       let lastTick = 0;
-      // Alterna zona central (recorte a resolución real) y frame completo.
-      let centerTurn = true;
-
-      const cropCenter = (): HTMLCanvasElement | null => {
-        const vw = video.videoWidth;
-        const vh = video.videoHeight;
-        if (!vw || !vh) return null;
-        const side = Math.round(Math.min(vw, vh) * ROI_RATIO);
-        const canvas = canvasRef.current ?? document.createElement("canvas");
-        canvasRef.current = canvas;
-        canvas.width = side;
-        canvas.height = side;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return null;
-        // Recorte sin reducir escala: conserva el detalle de etiquetas pequeñas.
-        ctx.drawImage(video, (vw - side) / 2, (vh - side) / 2, side, side, 0, 0, side, side);
-        return canvas;
-      };
+      let turn = 0;
 
       const loop = (ts: number) => {
         if (token !== runRef.current) return;
         rafRef.current = requestAnimationFrame(loop);
         if (busy || ts - lastTick < NATIVE_INTERVAL_MS) return;
         lastTick = ts;
+        turn += 1;
+
+        // Ciclos alternados sobre el MISMO video: QR dedicado y códigos de barras nativos.
+        if (qr && turn % 2 === 0) {
+          const center = smallLabelRef.current ? cropCenter() : cropCenter();
+          const centerHit = center ? qr.decode(center) : null;
+          if (centerHit) {
+            handleCode(centerHit);
+            return;
+          }
+          if (!smallLabelRef.current && turn % 4 === 0) {
+            const full = fullFrame();
+            const fullHit = full ? qr.decode(full) : null;
+            if (fullHit) {
+              handleCode(fullHit);
+              return;
+            }
+          }
+          return;
+        }
+
         busy = true;
-        // En modo etiqueta pequeña se prioriza siempre la zona central.
-        const useCenter = smallLabelRef.current || centerTurn;
-        centerTurn = !centerTurn;
+        const useCenter = smallLabelRef.current || turn % 4 === 1;
         const source: CanvasImageSource = (useCenter ? cropCenter() : null) ?? video;
         detector
           .detect(source)
@@ -337,6 +385,7 @@ export function BarcodeScanner({
       rafRef.current = requestAnimationFrame(loop);
       return;
     }
+
 
     // Respaldo para navegadores sin detección nativa (mantiene la resolución del video).
     try {
