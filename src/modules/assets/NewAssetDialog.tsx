@@ -146,10 +146,11 @@ export function NewAssetDialog({
       }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Activo dado de alta correctamente.");
       void queryClient.invalidateQueries({ queryKey: ["assets"] });
       onOpenChange(false);
+      if (data?.id) onCreated?.(data.id);
     },
     onError: (error: Error) => toast.error(error.message),
   });
