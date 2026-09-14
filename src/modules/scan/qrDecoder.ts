@@ -182,16 +182,25 @@ export async function createQrDecoder(): Promise<QrDecoder | null> {
       if (!jsQR) return null;
       const data = imageDataOf(canvas);
       if (!data) return null;
+      const attempt = (img: ImageData | null): string | null => {
+        if (!img) return null;
+        try {
+          return jsQR(img.data, img.width, img.height, { inversionAttempts: "attemptBoth" })?.data ?? null;
+        } catch {
+          return null;
+        }
+      };
       try {
-        const direct = jsQR(data.data, data.width, data.height, {
-          inversionAttempts: "attemptBoth",
-        });
-        if (direct?.data) return direct.data;
+        // Variantes pensadas para etiquetas impresas: original, contraste estirado,
+        // binarización automática y ampliación para QR pequeños.
         const boosted = enhancedCopy(data);
-        const second = jsQR(boosted.data, boosted.width, boosted.height, {
-          inversionAttempts: "attemptBoth",
-        });
-        return second?.data ?? null;
+        return (
+          attempt(data) ??
+          attempt(boosted) ??
+          attempt(binarizedCopy(data)) ??
+          attempt(upscaled(binarizedCopy(boosted))) ??
+          null
+        );
       } catch {
         return null;
       }
