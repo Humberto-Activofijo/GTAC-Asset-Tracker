@@ -4,6 +4,7 @@ import { Camera, ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/image";
 import { useSelectedSite } from "@/modules/sites/SelectedSiteContext";
 import { ASSET_CONDITIONS, CONDITION_LABEL, type AssetCondition } from "./queries";
 import { Button } from "@/components/ui/button";
