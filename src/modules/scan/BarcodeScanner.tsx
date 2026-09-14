@@ -450,8 +450,29 @@ export function BarcodeScanner({
         native: false,
         nativeQr: false,
         qrRoute: "zxing",
+        zxingHit: false,
+        fallbackReady: qr?.fallbackReady ?? false,
+        frame: "—",
+        crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
       });
+
+      // Refuerzo jsQR (~4/s) sobre el mismo video para QR impresos difíciles.
+      if (qr?.fallbackReady) {
+        let lastFb = 0;
+        const fbLoop = (ts: number) => {
+          if (token !== runRef.current) return;
+          rafRef.current = requestAnimationFrame(fbLoop);
+          if (ts - lastFb < 250) return;
+          lastFb = ts;
+          const center = cropCenter();
+          const hit =
+            (center ? qr.decodeFallback(center) : null) ??
+            (smallLabelRef.current ? null : ((full) => (full ? qr.decodeFallback(full) : null))(fullFrame()));
+          if (hit) handleCode(hit);
+        };
+        rafRef.current = requestAnimationFrame(fbLoop);
+      }
     } catch {
       setMessage("Este navegador no puede leer códigos. Usa la captura manual.");
       setStatus("error");
