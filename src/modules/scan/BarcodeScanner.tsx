@@ -633,7 +633,6 @@ export function BarcodeScanner({
     const ok = await applyTrack({ torch: next } as MediaTrackConstraintSet);
     torchBusyRef.current = false;
     if (!ok) setTorchOn(!next);
-    if (ok) setTorchOn(next);
   }, [applyTrack, caps, torchOn]);
 
   /** Modo etiqueta pequeña: enfoque, zoom disponible y zona central. */
