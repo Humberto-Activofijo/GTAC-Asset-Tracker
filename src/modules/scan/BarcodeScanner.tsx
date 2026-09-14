@@ -466,9 +466,17 @@ export function BarcodeScanner({
           if (ts - lastFb < 250) return;
           lastFb = ts;
           const center = cropCenter();
+          const full = smallLabelRef.current ? null : fullFrame();
+          if (import.meta.env.DEV) {
+            const frame = full
+              ? `${full.width}×${full.height}`
+              : `${video.videoWidth}×${video.videoHeight}`;
+            const crop = center ? `${center.width}×${center.height}` : "—";
+            setDiag((d) => (d && (d.frame !== frame || d.crop !== crop) ? { ...d, frame, crop } : d));
+          }
           const hit =
             (center ? qr.decodeFallback(center) : null) ??
-            (smallLabelRef.current ? null : ((full) => (full ? qr.decodeFallback(full) : null))(fullFrame()));
+            (full ? qr.decodeFallback(full) : null);
           if (hit) handleCode(hit);
         };
         rafRef.current = requestAnimationFrame(fbLoop);
