@@ -69,6 +69,8 @@ export function NewAssetDialog({
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const galleryRef = useRef<HTMLInputElement>(null);
+  // Un solo campo puede escanear a la vez: nunca hay dos streams abiertos.
+  const [scanField, setScanField] = useState<"assetNumber" | "serialNumber" | null>(null);
 
   // El ingeniero solo ve sus sitios asignados; el administrador, todos los activos.
   const selectableSites = useMemo(() => sites.filter((s) => s.active), [sites]);
