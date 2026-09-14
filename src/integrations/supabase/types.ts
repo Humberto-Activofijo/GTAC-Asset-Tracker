@@ -284,6 +284,22 @@ export type Database = {
         Args: { _site_id: string; _user_id: string }
         Returns: boolean
       }
+      lookup_asset_for_scan: {
+        Args: { _code: string }
+        Returns: {
+          asset_number: string
+          condition: Database["public"]["Enums"]["asset_condition"]
+          current_site_id: string
+          current_site_name: string
+          id: string
+          last_movement_at: string
+          matched_by: string
+          model: string
+          photo_url: string
+          serial_number: string
+          status: Database["public"]["Enums"]["asset_status"]
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "engineer"

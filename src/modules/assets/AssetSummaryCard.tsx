@@ -5,7 +5,8 @@ import { Loader2 } from "lucide-react";
 import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
 
-import { CONDITION_LABEL, STATUS_LABEL, getPhotoSignedUrl, type AssetRow } from "./queries";
+import { CONDITION_LABEL, STATUS_LABEL, getPhotoSignedUrl } from "./queries";
+import type { ScanAsset } from "./lookup";
 
 function Field({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -16,8 +17,20 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-/** Ficha compacta del activo identificado. No permite cambiar el sitio actual. */
-export function AssetSummaryCard({ asset, siteName }: { asset: AssetRow; siteName: string }) {
+/**
+ * Ficha compacta del activo identificado durante el escaneo.
+ * No permite cambiar el sitio actual ni registrar movimientos.
+ */
+export function AssetSummaryCard({
+  asset,
+  siteName,
+  canOpenDetail,
+}: {
+  asset: ScanAsset;
+  siteName: string;
+  /** Solo se enlaza la ficha completa cuando el activo está en un sitio del usuario. */
+  canOpenDetail: boolean;
+}) {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const photoPath = asset.photo_url;
 
@@ -35,23 +48,39 @@ export function AssetSummaryCard({ asset, siteName }: { asset: AssetRow; siteNam
     };
   }, [photoPath]);
 
+  const otherSite = !canOpenDetail;
+
   return (
     <section className="rounded-xl border border-border bg-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Activo identificado</p>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Activo encontrado</p>
           <h2 className="text-lg font-semibold text-foreground">{asset.asset_number}</h2>
         </div>
-        <Button asChild variant="outline" className="h-12">
-          <Link to="/activos/$assetId" params={{ assetId: asset.id }}>
-            Ver ficha completa
-          </Link>
-        </Button>
+        {canOpenDetail && (
+          <Button asChild variant="outline" className="h-12">
+            <Link to="/activos/$assetId" params={{ assetId: asset.id }}>
+              Ver ficha completa
+            </Link>
+          </Button>
+        )}
       </div>
 
-      <div className="mt-4 rounded-lg bg-muted px-4 py-3 text-sm text-foreground">
-        Sitio seleccionado para la operación: <span className="font-semibold">{siteName}</span>
+      <div className="mt-4 space-y-2 rounded-lg bg-muted px-4 py-3 text-sm text-foreground">
+        <p>
+          Ubicación actual: <span className="font-semibold">{asset.current_site_name}</span>
+        </p>
+        <p>
+          Sitio seleccionado para esta operación: <span className="font-semibold">{siteName}</span>
+        </p>
       </div>
+
+      {otherSite && (
+        <p className="mt-3 rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
+          Este activo está registrado en otro sitio. Por ahora solo se identifica: no se cambia su
+          ubicación ni se registra ningún movimiento.
+        </p>
+      )}
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <Field label="Número de activo" value={asset.asset_number} />
@@ -59,12 +88,11 @@ export function AssetSummaryCard({ asset, siteName }: { asset: AssetRow; siteNam
         <Field label="Modelo" value={asset.model ?? "—"} />
         <Field label="Condición" value={CONDITION_LABEL[asset.condition]} />
         <Field label="Estatus" value={STATUS_LABEL[asset.status] ?? asset.status} />
-        <Field label="Sitio actual del activo" value={asset.site?.name ?? "—"} />
+        <Field label="Sitio actual del activo" value={asset.current_site_name} />
         <Field
           label="Último movimiento"
           value={asset.last_movement_at ? formatDateTime(asset.last_movement_at) : "Sin movimientos"}
         />
-        <Field label="Fecha de alta" value={formatDateTime(asset.created_at)} />
       </div>
 
       <div className="mt-4">
