@@ -67,8 +67,6 @@ export function AssetSummaryCard({ asset, siteName }: { asset: AssetRow; siteNam
         <Field label="Fecha de alta" value={formatDateTime(asset.created_at)} />
       </div>
 
-      {asset.site && asset.site.id !== asset.current_site_id ? null : null}
-
       <div className="mt-4">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Fotografía</p>
         {asset.photo_url ? (
