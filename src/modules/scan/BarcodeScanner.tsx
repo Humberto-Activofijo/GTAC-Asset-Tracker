@@ -374,73 +374,34 @@ export function BarcodeScanner({
         frame: "—",
         crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
+        mode: "normal",
+        rates: "—",
       });
+
+      const engine = makeQrEngine(qr, video, cropCenter, fullFrame);
 
       let busy = false;
       let lastTick = 0;
+      let lastZxing = 0;
       let turn = 0;
-      let lastFallbackAt = 0;
-      let lastDiagKey = "";
-
-      /**
-       * Ruta 1 ZXing QR (~10/s). Si falla, ruta 2 jsQR (~4/s) sobre el recuadro
-       * central a resolución alta y, si procede, el frame completo.
-       */
-      const runQrPipeline = (ts: number): string | null => {
-        if (!qr) return null;
-        const center = cropCenter();
-        const full = smallLabelRef.current ? null : fullFrame();
-
-        let zxingHit: string | null = null;
-        if (center) zxingHit = qr.decodeZxing(center);
-        if (!zxingHit && full) zxingHit = qr.decodeZxing(full);
-
-        let fallbackHit: string | null = null;
-        const fallbackDue = qr.fallbackReady && ts - lastFallbackAt >= 250;
-        if (!zxingHit && fallbackDue) {
-          lastFallbackAt = ts;
-          if (center) fallbackHit = qr.decodeFallback(center);
-          if (!fallbackHit && full) fallbackHit = qr.decodeFallback(full);
-        }
-
-        if (import.meta.env.DEV) {
-          const key = [
-            zxingHit ? "si" : "no",
-            qr.fallbackReady ? "si" : "no",
-            full ? `${full.width}×${full.height}` : `${video.videoWidth}×${video.videoHeight}`,
-            center ? `${center.width}×${center.height}` : "—",
-          ].join("|");
-          if (key !== lastDiagKey) {
-            lastDiagKey = key;
-            setDiag((d) =>
-              d
-                ? {
-                    ...d,
-                    zxingHit: zxingHit !== null,
-                    fallbackReady: qr.fallbackReady,
-                    frame: key.split("|")[2] ?? "",
-                    crop: key.split("|")[3] ?? "",
-                  }
-                : d,
-            );
-          }
-        }
-
-        return zxingHit ?? fallbackHit;
-      };
 
       const loop = (ts: number) => {
         if (token !== runRef.current) return;
-        rafRef.current = requestAnimationFrame(loop);
-        if (busy || ts - lastTick < NATIVE_INTERVAL_MS) return;
+        scheduleFrame(video, loop);
+        // Sin trabajo si la pantalla no está activa, la pestaña está oculta o hay un control en curso.
+        if (busy || pauseRef.current > 0 || document.hidden) return;
+        if (ts - lastTick < NATIVE_INTERVAL_MS) return;
         lastTick = ts;
         turn += 1;
 
-        // Ciclos alternados sobre el MISMO video: QR dedicado y códigos de barras nativos.
-        if (qr && turn % 2 === 0) {
-          const hit = runQrPipeline(ts);
-          if (hit) handleCode(hit);
-          return;
+        // Ruta QR dedicada sobre el MISMO video, a su propia frecuencia.
+        if (qr && ts - lastZxing >= engine.zxingInterval()) {
+          lastZxing = ts;
+          const hit = engine.run(ts);
+          if (hit) {
+            handleCode(hit);
+            return;
+          }
         }
 
         busy = true;
@@ -456,7 +417,7 @@ export function BarcodeScanner({
             busy = false;
           });
       };
-      rafRef.current = requestAnimationFrame(loop);
+      scheduleFrame(video, loop);
       return;
     }
 
@@ -465,9 +426,11 @@ export function BarcodeScanner({
     try {
       const { BrowserMultiFormatReader } = await import("@zxing/browser");
       if (token !== runRef.current) return;
-      const reader = new BrowserMultiFormatReader(undefined, { delayBetweenScanAttempts: 80 });
+      const reader = new BrowserMultiFormatReader(undefined, { delayBetweenScanAttempts: 120 });
       const controls = await reader.decodeFromVideoElement(video, (result) => {
-        if (token === runRef.current && result) handleCode(result.getText());
+        if (token === runRef.current && result && pauseRef.current === 0 && !document.hidden) {
+          handleCode(result.getText());
+        }
       });
       if (token !== runRef.current) {
         controls.stop();
@@ -484,31 +447,24 @@ export function BarcodeScanner({
         frame: "—",
         crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
+        mode: "normal",
+        rates: "—",
       });
 
-      // Refuerzo jsQR (~4/s) sobre el mismo video para QR impresos difíciles.
+      // Refuerzo jsQR escalonado sobre el mismo video para QR impresos difíciles.
       if (qr?.fallbackReady) {
+        const engine = makeQrEngine(qr, video, cropCenter, fullFrame, { zxingOnly: false });
         let lastFb = 0;
         const fbLoop = (ts: number) => {
           if (token !== runRef.current) return;
-          rafRef.current = requestAnimationFrame(fbLoop);
-          if (ts - lastFb < 250) return;
+          scheduleFrame(video, fbLoop);
+          if (pauseRef.current > 0 || document.hidden) return;
+          if (ts - lastFb < engine.zxingInterval()) return;
           lastFb = ts;
-          const center = cropCenter();
-          const full = smallLabelRef.current ? null : fullFrame();
-          if (import.meta.env.DEV) {
-            const frame = full
-              ? `${full.width}×${full.height}`
-              : `${video.videoWidth}×${video.videoHeight}`;
-            const crop = center ? `${center.width}×${center.height}` : "—";
-            setDiag((d) => (d && (d.frame !== frame || d.crop !== crop) ? { ...d, frame, crop } : d));
-          }
-          const hit =
-            (center ? qr.decodeFallback(center) : null) ??
-            (full ? qr.decodeFallback(full) : null);
+          const hit = engine.run(ts);
           if (hit) handleCode(hit);
         };
-        rafRef.current = requestAnimationFrame(fbLoop);
+        scheduleFrame(video, fbLoop);
       }
     } catch {
       setMessage("Este navegador no puede leer códigos. Usa la captura manual.");
