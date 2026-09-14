@@ -601,7 +601,7 @@ export function BarcodeScanner({
       setMessage("Este navegador no puede leer códigos. Usa la captura manual.");
       setStatus("error");
     }
-  }, [applyTrack, handleCode]);
+  }, [applyTrack, handleCode, makeQrEngine, scheduleFrame]);
 
   useEffect(() => {
     if (active) void start();
@@ -613,16 +613,26 @@ export function BarcodeScanner({
     async (value: number) => {
       if (!caps?.zoom) return;
       const next = Math.min(caps.zoom.max, Math.max(caps.zoom.min, value));
+      const previous = zoom;
+      // Respuesta visual inmediata; se revierte si el hardware no acepta el valor.
+      setZoom(next);
       const ok = await applyTrack({ zoom: next } as MediaTrackConstraintSet);
-      if (ok) setZoom(next);
+      if (!ok) setZoom(previous);
     },
-    [applyTrack, caps],
+    [applyTrack, caps, zoom],
   );
 
+  const torchBusyRef = useRef(false);
+
   const toggleTorch = useCallback(async () => {
-    if (!caps?.torch) return;
+    if (!caps?.torch || torchBusyRef.current) return;
     const next = !torchOn;
+    torchBusyRef.current = true;
+    // El botón cambia al instante: no espera a la cadena de decodificación.
+    setTorchOn(next);
     const ok = await applyTrack({ torch: next } as MediaTrackConstraintSet);
+    torchBusyRef.current = false;
+    if (!ok) setTorchOn(!next);
     if (ok) setTorchOn(next);
   }, [applyTrack, caps, torchOn]);
 
