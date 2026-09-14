@@ -73,6 +73,8 @@ export function BarcodeScanner({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const fullCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const qrRef = useRef<QrDecoder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const trackRef = useRef<MediaStreamTrack | null>(null);
   const rafRef = useRef<number | null>(null);
