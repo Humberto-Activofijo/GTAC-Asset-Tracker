@@ -790,6 +790,9 @@ export function BarcodeScanner({
           <p>frame analizado: {diag.frame}</p>
           <p>recorte central: {diag.crop}</p>
           <p>resolución del stream: {diag.resolution}</p>
+          <p>modo de lectura QR: {diag.mode}</p>
+          <p>frecuencias: {diag.rates}</p>
+          <p>procesamiento: hilo principal</p>
         </div>
       )}
 
