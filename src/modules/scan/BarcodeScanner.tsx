@@ -161,6 +161,14 @@ export function BarcodeScanner({
     streamRef.current = null;
     trackRef.current = null;
     canvasRef.current = null;
+    fullCanvasRef.current = null;
+    try {
+      qrRef.current?.reset();
+    } catch {
+      /* ignorado */
+    }
+    qrRef.current = null;
+    setDiag(null);
     setTorchOn(false);
     setZoom(null);
     setCaps(null);
