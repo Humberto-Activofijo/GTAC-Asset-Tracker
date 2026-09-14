@@ -92,6 +92,12 @@ export function BarcodeScanner({
   const [smallLabel, setSmallLabel] = useState(false);
   const smallLabelRef = useRef(false);
   smallLabelRef.current = smallLabel;
+  const [diag, setDiag] = useState<{
+    native: boolean;
+    nativeQr: boolean;
+    qrRoute: "zxing" | "nativa" | "no disponible";
+    resolution: string;
+  } | null>(null);
 
   const detectedRef = useRef(onDetected);
   detectedRef.current = onDetected;
