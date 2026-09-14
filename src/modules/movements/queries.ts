@@ -138,17 +138,22 @@ export type RegisterMovementResult = {
 export async function registerMovement(
   input: RegisterMovementInput,
 ): Promise<RegisterMovementResult> {
-  const { data, error } = await supabase.rpc("register_movement", {
+  const args: Record<string, unknown> = {
     _asset_id: input.assetId,
     _action: input.action,
     _site_id: input.siteId,
     _client_operation_id: input.clientOperationId,
     _condition: input.condition,
-    _notes: input.notes ?? undefined,
-    _photo_url: input.photoUrl ?? undefined,
-    _latitude: input.latitude ?? undefined,
-    _longitude: input.longitude ?? undefined,
-  });
+  };
+  if (input.notes) args["_notes"] = input.notes;
+  if (input.photoUrl) args["_photo_url"] = input.photoUrl;
+  if (typeof input.latitude === "number") args["_latitude"] = input.latitude;
+  if (typeof input.longitude === "number") args["_longitude"] = input.longitude;
+
+  const { data, error } = await supabase.rpc(
+    "register_movement",
+    args as Parameters<typeof supabase.rpc<"register_movement">>[1],
+  );
   if (error) throw new Error(error.message);
   const row = data?.[0];
   if (!row) throw new Error("No fue posible registrar el movimiento.");
