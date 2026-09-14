@@ -313,6 +313,25 @@ export function NewAssetDialog({
             Guardar activo
           </Button>
         </DialogFooter>
+
+        <ScanDialog
+          open={scanField !== null}
+          onOpenChange={(v) => {
+            if (!v) setScanField(null);
+          }}
+          title={
+            scanField === "serialNumber"
+              ? "Escanear número de serie"
+              : "Escanear número de activo / QR"
+          }
+          description="Apunta la cámara al código de la etiqueta."
+          onCaptured={(code) => {
+            const field = scanField;
+            if (!field) return;
+            setForm((f) => ({ ...f, [field]: code }));
+            setScanField(null);
+          }}
+        />
       </DialogContent>
     </Dialog>
   );
