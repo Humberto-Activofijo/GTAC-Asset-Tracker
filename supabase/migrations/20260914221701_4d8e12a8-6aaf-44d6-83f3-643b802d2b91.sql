@@ -1,0 +1,1 @@
+ALTER TYPE public.asset_status ADD VALUE IF NOT EXISTS 'EN_TRANSITO';
