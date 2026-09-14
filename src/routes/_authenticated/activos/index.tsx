@@ -51,7 +51,7 @@ export const Route = createFileRoute("/_authenticated/activos/")({
 
 function ActivosPage() {
   const navigate = useNavigate({ from: "/activos/" });
-  const { page, q, site, condition } = Route.useSearch();
+  const { page = 1, q = "", site = "", condition = "" } = Route.useSearch();
   const { sites } = useSelectedSite();
   const [term, setTerm] = useState(q);
   const [creating, setCreating] = useState(false);
