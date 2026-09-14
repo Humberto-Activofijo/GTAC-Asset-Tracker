@@ -4,6 +4,7 @@ import { Camera, ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { supabase } from "@/integrations/supabase/client";
+import { compressImage } from "@/lib/image";
 import { useSelectedSite } from "@/modules/sites/SelectedSiteContext";
 import { ASSET_CONDITIONS, CONDITION_LABEL, type AssetCondition } from "./queries";
 import { Button } from "@/components/ui/button";
@@ -50,9 +51,15 @@ function extensionOf(file: File): string {
 export function NewAssetDialog({
   open,
   onOpenChange,
+  initialAssetNumber = "",
+  initialSiteId,
+  onCreated,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialAssetNumber?: string;
+  initialSiteId?: string;
+  onCreated?: (assetId: string) => void;
 }) {
   const queryClient = useQueryClient();
   const { sites, selectedSite } = useSelectedSite();
@@ -67,10 +74,14 @@ export function NewAssetDialog({
 
   useEffect(() => {
     if (!open) return;
-    setForm({ ...EMPTY, siteId: selectedSite?.id ?? selectableSites[0]?.id ?? "" });
+    setForm({
+      ...EMPTY,
+      assetNumber: initialAssetNumber,
+      siteId: initialSiteId ?? selectedSite?.id ?? selectableSites[0]?.id ?? "",
+    });
     setPhoto(null);
     setPhotoPreview(null);
-  }, [open, selectedSite, selectableSites]);
+  }, [open, selectedSite, selectableSites, initialAssetNumber, initialSiteId]);
 
   useEffect(() => {
     if (!photo) {
@@ -94,10 +105,15 @@ export function NewAssetDialog({
 
       let photoPath: string | null = null;
       if (photo) {
-        const path = `${form.siteId}/${crypto.randomUUID()}.${extensionOf(photo)}`;
+        // Se comprime en el dispositivo para no subir imágenes de varios MB.
+        const optimized = await compressImage(photo);
+        const path = `${form.siteId}/${crypto.randomUUID()}.${extensionOf(optimized)}`;
         const { error: uploadError } = await supabase.storage
           .from("asset-photos")
-          .upload(path, photo, { contentType: photo.type || "image/jpeg", upsert: false });
+          .upload(path, optimized, {
+            contentType: optimized.type || "image/jpeg",
+            upsert: false,
+          });
         if (uploadError) {
           throw new Error(
             "No fue posible guardar la fotografía. Revisa que el sitio te esté asignado.",
@@ -130,10 +146,11 @@ export function NewAssetDialog({
       }
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       toast.success("Activo dado de alta correctamente.");
       void queryClient.invalidateQueries({ queryKey: ["assets"] });
       onOpenChange(false);
+      if (data?.id) onCreated?.(data.id);
     },
     onError: (error: Error) => toast.error(error.message),
   });

@@ -27,8 +27,15 @@
 - [x] Actividad reciente en Inicio (altas)
 - [x] Pruebas de permisos, duplicados, foto y zona horaria
 
-## Fase 3 — pendiente
+## Fase 3 — completada
 
-Escaneo QR/código de barras, movimientos (entrada/salida/tránsito),
-inventarios, alertas, reportes, edición de activos desde la interfaz,
-carga masiva, correo y sincronización offline.
+Escaneo QR/código de barras e identificación de activos en /escanear:
+detección nativa (BarcodeDetector) con fallback ZXing, cámara trasera,
+captura manual, ficha del activo identificado, alta desde código
+inexistente y compresión de fotos en cliente (máx. 1600 px, ~JPEG 300 KB).
+
+## Fase 4 — pendiente
+
+Movimientos (entrada/salida/tránsito), inventarios, alertas +48 h,
+reportes, edición de activos desde la interfaz, carga masiva, correo y
+sincronización offline.
