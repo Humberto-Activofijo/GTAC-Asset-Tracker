@@ -572,7 +572,7 @@ export function BarcodeScanner({
 
       // Refuerzo jsQR escalonado sobre el mismo video para QR impresos difíciles.
       if (qr?.fallbackReady) {
-        const engine = makeQrEngine(qr, video, cropCenter, fullFrame, { zxingOnly: false });
+        const engine = makeQrEngine(qr, video, cropCenter, fullFrame);
         let lastFb = 0;
         const fbLoop = (ts: number) => {
           if (token !== runRef.current) return;
