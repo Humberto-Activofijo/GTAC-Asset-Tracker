@@ -171,9 +171,21 @@ export function BarcodeScanner({
   /** Limpieza explícita: timers, tracks, ZXing y referencias. */
   const stop = useCallback(() => {
     runRef.current += 1;
+    pauseRef.current = 0;
     if (rafRef.current !== null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
+    }
+    const vid = videoRef.current as
+      | (HTMLVideoElement & { cancelVideoFrameCallback?: (h: number) => void })
+      | null;
+    if (frameCbRef.current !== null) {
+      try {
+        vid?.cancelVideoFrameCallback?.(frameCbRef.current);
+      } catch {
+        /* ignorado */
+      }
+      frameCbRef.current = null;
     }
     try {
       zxingRef.current?.stop();
