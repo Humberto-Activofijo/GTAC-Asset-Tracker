@@ -352,20 +352,8 @@ export function BarcodeScanner({
 
         // Ciclos alternados sobre el MISMO video: QR dedicado y códigos de barras nativos.
         if (qr && turn % 2 === 0) {
-          const center = cropCenter();
-          const centerHit = center ? qr.decode(center) : null;
-          if (centerHit) {
-            handleCode(centerHit);
-            return;
-          }
-          if (!smallLabelRef.current && turn % 4 === 0) {
-            const full = fullFrame();
-            const fullHit = full ? qr.decode(full) : null;
-            if (fullHit) {
-              handleCode(fullHit);
-              return;
-            }
-          }
+          const hit = runQrPipeline(ts);
+          if (hit) handleCode(hit);
           return;
         }
 
