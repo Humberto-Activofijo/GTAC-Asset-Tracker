@@ -9,6 +9,12 @@ import { AssetSummaryCard } from "@/modules/assets/AssetSummaryCard";
 import { NewAssetDialog } from "@/modules/assets/NewAssetDialog";
 import { lookupAssetByCode, normalizeCode, type LookupResult } from "@/modules/assets/lookup";
 import { BarcodeScanner, type ScanEngine } from "@/modules/scan/BarcodeScanner";
+import { MovementDialog } from "@/modules/movements/MovementDialog";
+import {
+  ACTION_LABEL,
+  MOVEMENT_ACTIONS,
+  type MovementAction,
+} from "@/modules/movements/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,6 +54,7 @@ function ScanPage() {
   const [engine, setEngine] = useState<ScanEngine | null>(null);
   const [result, setResult] = useState<LookupResult | null>(null);
   const [creating, setCreating] = useState(false);
+  const [movementAction, setMovementAction] = useState<MovementAction | null>(null);
 
   const lookup = useMutation({
     mutationFn: (code: string) => lookupAssetByCode(code),
