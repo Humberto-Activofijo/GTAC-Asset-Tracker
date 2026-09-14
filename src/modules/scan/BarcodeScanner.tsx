@@ -3,6 +3,7 @@ import { CameraOff, Flashlight, FlashlightOff, Loader2, ScanLine, ScanSearch } f
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { createQrDecoder, type QrDecoder } from "./qrDecoder";
 
 /**
  * Escáner GTAC: componente único de cámara reutilizado por todos los flujos
