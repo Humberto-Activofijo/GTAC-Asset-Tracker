@@ -141,19 +141,30 @@ export function BarcodeScanner({
       /* la vibración es opcional */
     }
     setHit(true);
-    window.setTimeout(() => setHit(false), 900);
+    // Detiene de inmediato cualquier otro intento pendiente mientras se entrega el resultado.
+    pauseRef.current += 1;
+    window.setTimeout(() => {
+      setHit(false);
+      pauseRef.current = Math.max(0, pauseRef.current - 1);
+    }, 900);
     detectedRef.current(code);
   }, []);
 
-  /** Aplica una restricción opcional sin romper la cámara si no existe. */
+  /**
+   * Aplica una restricción opcional sin romper la cámara si no existe.
+   * La decodificación se pausa mientras tanto: los controles responden al instante.
+   */
   const applyTrack = useCallback(async (constraint: MediaTrackConstraintSet) => {
     const track = trackRef.current;
     if (!track) return false;
+    pauseRef.current += 1;
     try {
       await track.applyConstraints({ advanced: [constraint] } as MediaTrackConstraints);
       return true;
     } catch {
       return false;
+    } finally {
+      pauseRef.current = Math.max(0, pauseRef.current - 1);
     }
   }, []);
 
