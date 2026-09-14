@@ -342,6 +342,55 @@ export function BarcodeScanner({
       let busy = false;
       let lastTick = 0;
       let turn = 0;
+      let lastFallbackAt = 0;
+      let lastDiagKey = "";
+
+      /**
+       * Ruta 1 ZXing QR (~10/s). Si falla, ruta 2 jsQR (~4/s) sobre el recuadro
+       * central a resolución alta y, si procede, el frame completo.
+       */
+      const runQrPipeline = (ts: number): string | null => {
+        if (!qr) return null;
+        const center = cropCenter();
+        const full = smallLabelRef.current ? null : fullFrame();
+
+        let zxingHit: string | null = null;
+        if (center) zxingHit = qr.decodeZxing(center);
+        if (!zxingHit && full) zxingHit = qr.decodeZxing(full);
+
+        let fallbackHit: string | null = null;
+        const fallbackDue = qr.fallbackReady && ts - lastFallbackAt >= 250;
+        if (!zxingHit && fallbackDue) {
+          lastFallbackAt = ts;
+          if (center) fallbackHit = qr.decodeFallback(center);
+          if (!fallbackHit && full) fallbackHit = qr.decodeFallback(full);
+        }
+
+        if (import.meta.env.DEV) {
+          const key = [
+            zxingHit ? "si" : "no",
+            qr.fallbackReady ? "si" : "no",
+            full ? `${full.width}×${full.height}` : `${video.videoWidth}×${video.videoHeight}`,
+            center ? `${center.width}×${center.height}` : "—",
+          ].join("|");
+          if (key !== lastDiagKey) {
+            lastDiagKey = key;
+            setDiag((d) =>
+              d
+                ? {
+                    ...d,
+                    zxingHit: zxingHit !== null,
+                    fallbackReady: qr.fallbackReady,
+                    frame: key.split("|")[2] ?? "",
+                    crop: key.split("|")[3] ?? "",
+                  }
+                : d,
+            );
+          }
+        }
+
+        return zxingHit ?? fallbackHit;
+      };
 
       const loop = (ts: number) => {
         if (token !== runRef.current) return;
