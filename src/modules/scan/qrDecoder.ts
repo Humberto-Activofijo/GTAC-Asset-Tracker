@@ -185,7 +185,7 @@ export async function createQrDecoder(): Promise<QrDecoder | null> {
   return {
     fallbackReady: jsQR !== null,
     decodeZxing: (canvas) => (zxingDecode ? zxingDecode(canvas) : null),
-    decodeFallback: (canvas) => {
+    decodeFallback: (canvas, stage = "original") => {
       if (!jsQR) return null;
       const data = imageDataOf(canvas);
       if (!data) return null;
@@ -198,16 +198,11 @@ export async function createQrDecoder(): Promise<QrDecoder | null> {
         }
       };
       try {
-        // Variantes pensadas para etiquetas impresas: original, contraste estirado,
-        // binarización automática y ampliación para QR pequeños.
-        const boosted = enhancedCopy(data);
-        return (
-          attempt(data) ??
-          attempt(boosted) ??
-          attempt(binarizedCopy(data)) ??
-          attempt(upscaled(binarizedCopy(boosted))) ??
-          null
-        );
+        // Una sola variante por intento: no se generan las demás hasta que hagan falta.
+        if (stage === "original") return attempt(data);
+        if (stage === "contraste") return attempt(enhancedCopy(data));
+        if (stage === "binarizada") return attempt(binarizedCopy(data));
+        return attempt(upscaled(binarizedCopy(enhancedCopy(data))));
       } catch {
         return null;
       }
