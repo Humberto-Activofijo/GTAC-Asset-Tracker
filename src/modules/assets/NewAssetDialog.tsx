@@ -104,10 +104,15 @@ export function NewAssetDialog({
 
       let photoPath: string | null = null;
       if (photo) {
-        const path = `${form.siteId}/${crypto.randomUUID()}.${extensionOf(photo)}`;
+        // Se comprime en el dispositivo para no subir imágenes de varios MB.
+        const optimized = await compressImage(photo);
+        const path = `${form.siteId}/${crypto.randomUUID()}.${extensionOf(optimized)}`;
         const { error: uploadError } = await supabase.storage
           .from("asset-photos")
-          .upload(path, photo, { contentType: photo.type || "image/jpeg", upsert: false });
+          .upload(path, optimized, {
+            contentType: optimized.type || "image/jpeg",
+            upsert: false,
+          });
         if (uploadError) {
           throw new Error(
             "No fue posible guardar la fotografía. Revisa que el sitio te esté asignado.",
