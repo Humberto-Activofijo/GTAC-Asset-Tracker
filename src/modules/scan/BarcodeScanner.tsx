@@ -652,6 +652,10 @@ export function BarcodeScanner({
           <p>detector nativo activo: {diag.native ? "sí" : "no"}</p>
           <p>QR nativo soportado: {diag.nativeQr ? "sí" : "no"}</p>
           <p>ruta QR activa: {diag.qrRoute}</p>
+          <p>QR ZXing: {diag.zxingHit ? "detectado" : "no"}</p>
+          <p>QR fallback: {diag.fallbackReady ? "jsQR activo" : "no disponible"}</p>
+          <p>frame analizado: {diag.frame}</p>
+          <p>recorte central: {diag.crop}</p>
           <p>resolución del stream: {diag.resolution}</p>
         </div>
       )}
