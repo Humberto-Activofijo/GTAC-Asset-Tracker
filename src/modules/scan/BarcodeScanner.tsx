@@ -352,7 +352,7 @@ export function BarcodeScanner({
 
         // Ciclos alternados sobre el MISMO video: QR dedicado y códigos de barras nativos.
         if (qr && turn % 2 === 0) {
-          const center = smallLabelRef.current ? cropCenter() : cropCenter();
+          const center = cropCenter();
           const centerHit = center ? qr.decode(center) : null;
           if (centerHit) {
             handleCode(centerHit);
