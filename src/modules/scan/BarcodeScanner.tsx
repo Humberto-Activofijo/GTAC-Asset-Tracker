@@ -117,6 +117,8 @@ export function BarcodeScanner({
     frame: string;
     crop: string;
     resolution: string;
+    mode: string;
+    rates: string;
   } | null>(null);
 
   const detectedRef = useRef(onDetected);
