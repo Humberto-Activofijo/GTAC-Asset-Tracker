@@ -144,10 +144,10 @@ export async function registerMovement(
     _site_id: input.siteId,
     _client_operation_id: input.clientOperationId,
     _condition: input.condition,
-    _notes: input.notes ?? null,
-    _photo_url: input.photoUrl ?? null,
-    _latitude: input.latitude ?? null,
-    _longitude: input.longitude ?? null,
+    _notes: input.notes ?? undefined,
+    _photo_url: input.photoUrl ?? undefined,
+    _latitude: input.latitude ?? undefined,
+    _longitude: input.longitude ?? undefined,
   });
   if (error) throw new Error(error.message);
   const row = data?.[0];
