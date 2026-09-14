@@ -92,6 +92,12 @@ export function BarcodeScanner({
   const zxingRef = useRef<{ stop: () => void } | null>(null);
   const lastRef = useRef<{ code: string; at: number }>({ code: "", at: 0 });
   const runRef = useRef(0);
+  /** >0 cuando la decodificación está pausada (controles de cámara, pestaña oculta, detección). */
+  const pauseRef = useRef(0);
+  const frameCbRef = useRef<number | null>(null);
+  /** Métricas de rendimiento (frecuencias reales y coste medio por intento). */
+  const metricsRef = useRef({ zxing: 0, jsqr: 0, jsqrMs: 0, hardSince: 0, since: 0 });
+
 
   const [status, setStatus] = useState<"idle" | "starting" | "scanning" | "error">("idle");
   const [message, setMessage] = useState<string | null>(null);
