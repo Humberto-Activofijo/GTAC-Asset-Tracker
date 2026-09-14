@@ -25,6 +25,16 @@ const WANTED_FORMATS = [
 
 /** ~20 intentos por segundo con detector nativo. */
 const NATIVE_INTERVAL_MS = 50;
+/** ZXing QR en modo normal: ~8 intentos por segundo. */
+const ZXING_INTERVAL_MS = 125;
+/** jsQR en modo normal (solo tras el retraso adaptativo): ~2 intentos por segundo. */
+const JSQR_INTERVAL_MS = 500;
+/** jsQR en modo Etiqueta pequeña (alta precisión): ~3 intentos por segundo. */
+const JSQR_INTERVAL_SMALL_MS = 320;
+/** Tiempo sin encontrar QR antes de activar el modo QR difícil. */
+const HARD_MODE_AFTER_MS = 1000;
+/** Si un intento pesado supera este tiempo, se espacian los siguientes. */
+const SLOW_ATTEMPT_MS = 90;
 /** Proporción del lado analizado en la zona central. */
 const ROI_RATIO = 0.62;
 const DEDUPE_MS = 2000;
