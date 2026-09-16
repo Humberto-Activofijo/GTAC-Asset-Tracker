@@ -142,6 +142,12 @@ function AlertCard({ alert, onResolve }: { alert: AlertRow; onResolve: (a: Alert
         <Detail label="Sitio relacionado" value={alert.site_name ?? "—"} />
         <Detail label="Fecha" value={formatDateTime(alert.created_at)} />
         <Detail label="Antigüedad" value={relativeAge(alert.created_at)} />
+        {alert.email_sent_at && (
+          <Detail label="Correo enviado" value={formatDateTime(alert.email_sent_at)} />
+        )}
+        {alert.email_error && alert.email_status !== "SENT" && (
+          <Detail label="Detalle del correo" value={alert.email_error} />
+        )}
 
         {isTransit ? (
           <>
