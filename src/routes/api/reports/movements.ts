@@ -29,8 +29,12 @@ export const Route = createFileRoute("/api/reports/movements")({
           };
           const rows = await fetchAllRows<MovementReportRow>(
             client,
-            "report_movements",
+            "export_movements_page",
             movementRpcParams(body.filters ?? {}),
+            (last) => ({
+              _after_occurred_at: last.occurred_at,
+              _after_row_id: last.row_id,
+            }),
           );
 
           const sheet: (string | number)[][] = [

@@ -88,25 +88,31 @@ export async function assertAdmin(client: AnyClient): Promise<void> {
  * Recorre la función de reporte por lotes en el servidor: nunca se materializa
  * el conjunto completo en el navegador.
  */
-export async function fetchAllRows<T extends { total_count?: number }>(
+/**
+ * Recorre el reporte por bloques con cursor (sin OFFSET): el servidor arma el
+ * archivo y el navegador nunca recibe los registros completos.
+ */
+export async function fetchAllRows<T extends Record<string, unknown>>(
   client: AnyClient,
   fn: string,
   params: Record<string, unknown>,
+  cursor: (last: T) => Record<string, unknown>,
 ): Promise<T[]> {
   const all: T[] = [];
-  let total = Infinity;
-  for (let offset = 0; offset < MAX_ROWS && all.length < total; offset += BATCH_SIZE) {
+  let cursorParams: Record<string, unknown> = {};
+  while (all.length < MAX_ROWS) {
     const { data, error } = await (
       client.rpc as unknown as (
         name: string,
         args: Record<string, unknown>,
       ) => Promise<{ data: unknown; error: { message: string } | null }>
-    ).call(client, fn, { ...params, _limit: BATCH_SIZE, _offset: offset });
+    ).call(client, fn, { ...params, ...cursorParams, _limit: BATCH_SIZE });
     if (error) throw new Error(error.message);
     const batch = (data ?? []) as T[];
     if (batch.length === 0) break;
-    if (total === Infinity) total = batch[0]?.total_count ?? batch.length;
     all.push(...batch);
+    if (batch.length < BATCH_SIZE) break;
+    cursorParams = cursor(batch[batch.length - 1]!);
   }
   return all;
 }

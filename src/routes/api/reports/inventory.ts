@@ -32,8 +32,9 @@ export const Route = createFileRoute("/api/reports/inventory")({
           };
           const rows = await fetchAllRows<InventoryReportRow>(
             client,
-            "report_inventory",
+            "export_inventory_page",
             inventoryRpcParams(body.filters ?? {}),
+            (last) => ({ _after_id: last.id }),
           );
 
           const sheet: (string | number)[][] = [
