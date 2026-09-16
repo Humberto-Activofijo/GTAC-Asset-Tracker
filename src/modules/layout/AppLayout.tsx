@@ -31,15 +31,15 @@ import {
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
-  { to: "/inicio", label: "Inicio", icon: Home },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/sitios", label: "Sitios", icon: MapPin },
-  { to: "/activos", label: "Activos", icon: Package },
-  { to: "/movimientos", label: "Movimientos", icon: ArrowLeftRight },
-  { to: "/ingenieros", label: "Ingenieros", icon: Users },
-  { to: "/alertas", label: "Alertas", icon: Bell },
-  { to: "/reportes", label: "Reportes", icon: FileText },
-  { to: "/escanear", label: "Escanear", icon: ScanLine },
+  { to: "/inicio", label: "Inicio", icon: Home, adminOnly: false },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
+  { to: "/sitios", label: "Sitios", icon: MapPin, adminOnly: false },
+  { to: "/activos", label: "Activos", icon: Package, adminOnly: false },
+  { to: "/movimientos", label: "Movimientos", icon: ArrowLeftRight, adminOnly: false },
+  { to: "/ingenieros", label: "Ingenieros", icon: Users, adminOnly: false },
+  { to: "/admin/alertas", label: "Alertas", icon: Bell, adminOnly: true },
+  { to: "/reportes", label: "Reportes", icon: FileText, adminOnly: false },
+  { to: "/escanear", label: "Escanear", icon: ScanLine, adminOnly: false },
 ] as const;
 
 export function GtacBrand({ compact = false }: { compact?: boolean }) {
