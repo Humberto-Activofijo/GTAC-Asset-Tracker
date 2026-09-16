@@ -244,11 +244,9 @@ export function BarcodeScanner({
   );
 
   /**
-   * Motor QR de dos niveles sobre el mismo stream:
-   *  - Modo normal: solo ZXing QR sobre la zona central (bajo consumo).
-   *  - Modo QR difícil: se activa con Etiqueta pequeña o tras ~1 s sin lectura,
-   *    y habilita jsQR con variantes escalonadas (una por intento).
-   * La frecuencia de jsQR se adapta al rendimiento real del teléfono.
+   * Respaldo avanzado de QR (Fases 4.3/4.4) sobre el MISMO stream.
+   * En modo directo no se ejecuta: solo se activa cuando pasan ~1.2 s sin
+   * lectura o cuando el usuario enciende Etiqueta pequeña.
    */
   const makeQrEngine = useCallback(
     (
@@ -257,7 +255,6 @@ export function BarcodeScanner({
       cropCenter: () => HTMLCanvasElement | null,
       fullFrame: () => HTMLCanvasElement | null,
     ) => {
-      let firstMiss = 0;
       let lastJs = 0;
       let penalty = 1;
       let stage = 0;
@@ -282,17 +279,10 @@ export function BarcodeScanner({
           m.zxing += 1;
 
           const zxingHit = hit !== null;
-          const hard = smallLabelRef.current || (firstMiss > 0 && ts - firstMiss >= HARD_MODE_AFTER_MS);
-          if (zxingHit) {
-            firstMiss = 0;
-            stage = 0;
-          } else if (firstMiss === 0) {
-            firstMiss = ts;
-          }
 
-          // jsQR solo en modo QR difícil, con una variante por intento.
+          // jsQR con una variante por intento, adaptando la frecuencia al teléfono.
           const base = smallLabelRef.current ? JSQR_INTERVAL_SMALL_MS : JSQR_INTERVAL_MS;
-          if (!hit && hard && qr.fallbackReady && ts - lastJs >= base * penalty) {
+          if (!hit && qr.fallbackReady && ts - lastJs >= base * penalty) {
             lastJs = ts;
             const stageName = QR_STAGES[stage % QR_STAGES.length]!;
             const t0 = performance.now();
@@ -301,22 +291,18 @@ export function BarcodeScanner({
             const cost = performance.now() - t0;
             m.jsqr += 1;
             m.jsqrMs += cost;
-            // Adaptación al rendimiento: si el ciclo pesado tarda, se espacia el siguiente.
             penalty = cost > SLOW_ATTEMPT_MS ? Math.min(4, penalty + 0.5) : Math.max(1, penalty - 0.25);
             stage = hit ? 0 : stage + 1;
           }
 
-          if (hit) {
-            firstMiss = 0;
-            stage = 0;
-          }
+          if (hit) stage = 0;
 
           if (import.meta.env.DEV) {
             const elapsed = Math.max(1, ts - m.since) / 1000;
             const rates = `ZXing ${(m.zxing / elapsed).toFixed(1)}/s · jsQR ${(m.jsqr / elapsed).toFixed(1)}/s · ${
               m.jsqr ? (m.jsqrMs / m.jsqr).toFixed(0) : 0
             } ms`;
-            const mode = smallLabelRef.current ? "etiqueta pequeña" : hard ? "QR difícil" : "normal";
+            const mode = smallLabelRef.current ? "etiqueta pequeña" : "avanzado";
             const frame = full ? `${full.width}×${full.height}` : `${video.videoWidth}×${video.videoHeight}`;
             const crop = center ? `${center.width}×${center.height}` : "—";
             const key = [zxingHit, mode, rates, frame, crop].join("|");
@@ -341,6 +327,7 @@ export function BarcodeScanner({
     },
     [],
   );
+
 
   const start = useCallback(async () => {
     const token = ++runRef.current;
