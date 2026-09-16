@@ -24,6 +24,7 @@ import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedSitiosRouteImport } from './routes/_authenticated/sitios'
 import { Route as AuthenticatedActivosIndexRouteImport } from './routes/_authenticated/activos/index'
 import { Route as AuthenticatedActivosAssetIdRouteImport } from './routes/_authenticated/activos/$assetId'
+import { Route as AuthenticatedAdminAlertasRouteImport } from './routes/_authenticated/admin/alertas'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -102,6 +103,12 @@ const AuthenticatedActivosAssetIdRoute =
     path: '/activos/$assetId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminAlertasRoute =
+  AuthenticatedAdminAlertasRouteImport.update({
+    id: '/admin/alertas',
+    path: '/admin/alertas',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -117,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
+  '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/activos/': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRoutesByTo {
@@ -133,6 +141,7 @@ export interface FileRoutesByTo {
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
+  '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/activos': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRoutesById {
@@ -151,6 +160,7 @@ export interface FileRoutesById {
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/sitios': typeof AuthenticatedSitiosRoute
   '/_authenticated/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
+  '/_authenticated/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/_authenticated/activos/': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRouteTypes {
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/sitios'
     | '/activos/$assetId'
+    | '/admin/alertas'
     | '/activos/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/reportes'
     | '/sitios'
     | '/activos/$assetId'
+    | '/admin/alertas'
     | '/activos'
   id:
     | '__root__'
@@ -202,6 +214,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reportes'
     | '/_authenticated/sitios'
     | '/_authenticated/activos/$assetId'
+    | '/_authenticated/admin/alertas'
     | '/_authenticated/activos/'
   fileRoutesById: FileRoutesById
 }
@@ -319,6 +332,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedActivosAssetIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/alertas': {
+      id: '/_authenticated/admin/alertas'
+      path: '/admin/alertas'
+      fullPath: '/admin/alertas'
+      preLoaderRoute: typeof AuthenticatedAdminAlertasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -333,6 +353,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedReportesRoute: typeof AuthenticatedReportesRoute
   AuthenticatedSitiosRoute: typeof AuthenticatedSitiosRoute
   AuthenticatedActivosAssetIdRoute: typeof AuthenticatedActivosAssetIdRoute
+  AuthenticatedAdminAlertasRoute: typeof AuthenticatedAdminAlertasRoute
   AuthenticatedActivosIndexRoute: typeof AuthenticatedActivosIndexRoute
 }
 
@@ -347,6 +368,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedReportesRoute: AuthenticatedReportesRoute,
   AuthenticatedSitiosRoute: AuthenticatedSitiosRoute,
   AuthenticatedActivosAssetIdRoute: AuthenticatedActivosAssetIdRoute,
+  AuthenticatedAdminAlertasRoute: AuthenticatedAdminAlertasRoute,
   AuthenticatedActivosIndexRoute: AuthenticatedActivosIndexRoute,
 }
 

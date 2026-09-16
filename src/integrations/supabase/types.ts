@@ -14,6 +14,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      alerts: {
+        Row: {
+          asset_id: string
+          created_at: string
+          id: string
+          message: string
+          metadata: Json
+          movement_id: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          site_id: string | null
+          status: Database["public"]["Enums"]["alert_status"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json
+          movement_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["alert_status"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json
+          movement_id?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          site_id?: string | null
+          status?: Database["public"]["Enums"]["alert_status"]
+          type?: Database["public"]["Enums"]["alert_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_movement_id_fkey"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "movements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assets: {
         Row: {
           asset_number: string
@@ -373,6 +440,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      alerts_dashboard: {
+        Args: never
+        Returns: {
+          assets_in_transit: number
+          open_alerts: number
+          protocol_omissions: number
+          transit_48h: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -383,6 +459,41 @@ export type Database = {
       is_assigned_site: {
         Args: { _site_id: string; _user_id: string }
         Returns: boolean
+      }
+      list_alerts: {
+        Args: { _limit?: number; _offset?: number; _status?: string }
+        Returns: {
+          asset_id: string
+          asset_number: string
+          created_at: string
+          departed_at: string
+          hours_in_transit: number
+          id: string
+          message: string
+          metadata: Json
+          movement_id: string
+          origin_site_name: string
+          resolution_notes: string
+          resolved_at: string
+          resolved_by_email: string
+          site_id: string
+          site_name: string
+          status: Database["public"]["Enums"]["alert_status"]
+          subsequent_entry_at: string
+          total_count: number
+          type: Database["public"]["Enums"]["alert_type"]
+        }[]
+      }
+      list_asset_alerts: {
+        Args: { _asset_id: string }
+        Returns: {
+          created_at: string
+          id: string
+          message: string
+          resolved_at: string
+          status: Database["public"]["Enums"]["alert_status"]
+          type: Database["public"]["Enums"]["alert_type"]
+        }[]
       }
       lookup_asset_for_scan: {
         Args: { _code: string }
@@ -420,8 +531,27 @@ export type Database = {
           protocol_omission: boolean
         }[]
       }
+      resolve_alert: {
+        Args: { _alert_id: string; _notes: string }
+        Returns: {
+          id: string
+          resolved_at: string
+          status: Database["public"]["Enums"]["alert_status"]
+        }[]
+      }
+      run_transit_48h_check: {
+        Args: never
+        Returns: {
+          alerts_created: number
+          alerts_existing: number
+          assets_reviewed: number
+          errors: number
+        }[]
+      }
     }
     Enums: {
+      alert_status: "OPEN" | "RESOLVED"
+      alert_type: "TRANSITO_48H" | "OMISION_PROTOCOLO"
       app_role: "admin" | "engineer"
       asset_condition: "ACTIVO" | "DESCONECTADO" | "DANADO"
       asset_status: "EN_SITIO" | "EN_TRANSITO"
@@ -553,6 +683,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      alert_status: ["OPEN", "RESOLVED"],
+      alert_type: ["TRANSITO_48H", "OMISION_PROTOCOLO"],
       app_role: ["admin", "engineer"],
       asset_condition: ["ACTIVO", "DESCONECTADO", "DANADO"],
       asset_status: ["EN_SITIO", "EN_TRANSITO"],

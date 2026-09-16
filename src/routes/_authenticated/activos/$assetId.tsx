@@ -10,6 +10,7 @@ import {
   getPhotoSignedUrl,
 } from "@/modules/assets/queries";
 import { MovementTimeline } from "@/modules/movements/MovementTimeline";
+import { AssetAlerts } from "@/modules/alerts/AssetAlerts";
 import { PageHeader } from "@/modules/layout/PageHeader";
 import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
@@ -145,6 +146,8 @@ function AssetDetailPage() {
         <h2 className="text-sm font-semibold text-foreground">Historial del activo</h2>
         <MovementTimeline assetId={asset.id} />
       </section>
+
+      <AssetAlerts assetId={asset.id} />
     </>
   );
 }

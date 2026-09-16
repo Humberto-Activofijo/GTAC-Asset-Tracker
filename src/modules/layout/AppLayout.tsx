@@ -31,15 +31,15 @@ import {
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const NAV_ITEMS = [
-  { to: "/inicio", label: "Inicio", icon: Home },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/sitios", label: "Sitios", icon: MapPin },
-  { to: "/activos", label: "Activos", icon: Package },
-  { to: "/movimientos", label: "Movimientos", icon: ArrowLeftRight },
-  { to: "/ingenieros", label: "Ingenieros", icon: Users },
-  { to: "/alertas", label: "Alertas", icon: Bell },
-  { to: "/reportes", label: "Reportes", icon: FileText },
-  { to: "/escanear", label: "Escanear", icon: ScanLine },
+  { to: "/inicio", label: "Inicio", icon: Home, adminOnly: false },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, adminOnly: false },
+  { to: "/sitios", label: "Sitios", icon: MapPin, adminOnly: false },
+  { to: "/activos", label: "Activos", icon: Package, adminOnly: false },
+  { to: "/movimientos", label: "Movimientos", icon: ArrowLeftRight, adminOnly: false },
+  { to: "/ingenieros", label: "Ingenieros", icon: Users, adminOnly: false },
+  { to: "/admin/alertas", label: "Alertas", icon: Bell, adminOnly: true },
+  { to: "/reportes", label: "Reportes", icon: FileText, adminOnly: false },
+  { to: "/escanear", label: "Escanear", icon: ScanLine, adminOnly: false },
 ] as const;
 
 export function GtacBrand({ compact = false }: { compact?: boolean }) {
@@ -58,12 +58,12 @@ export function GtacBrand({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function NavLinks({ onNavigate, isAdmin }: { onNavigate?: () => void; isAdmin: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <nav className="flex flex-col gap-1">
-      {NAV_ITEMS.map((item) => {
+      {NAV_ITEMS.filter((item) => isAdmin || !item.adminOnly).map((item) => {
         const active = pathname === item.to;
         const Icon = item.icon;
         return (
@@ -143,7 +143,7 @@ export function AppLayout({ user, children }: { user: CurrentUser; children: Rea
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col justify-between border-r border-border bg-card px-4 py-5 lg:flex">
         <div className="space-y-6">
           <GtacBrand />
-          <NavLinks />
+          <NavLinks isAdmin={user.role === "admin"} />
         </div>
         <UserMenu user={user} />
       </aside>
@@ -163,7 +163,10 @@ export function AppLayout({ user, children }: { user: CurrentUser; children: Rea
             <div className="flex h-full flex-col justify-between">
               <div className="space-y-6">
                 <GtacBrand />
-                <NavLinks onNavigate={() => setMobileOpen(false)} />
+                <NavLinks
+                  onNavigate={() => setMobileOpen(false)}
+                  isAdmin={user.role === "admin"}
+                />
               </div>
               <UserMenu user={user} />
             </div>
