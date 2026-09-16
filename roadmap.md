@@ -42,7 +42,19 @@ idempotencia por client_operation_id, omisión de protocolo), acciones desde
 Escanear, línea de tiempo del activo, actividad reciente combinada y
 página /movimientos con filtros y paginación del lado del servidor.
 
-## Fase 5 — pendiente
+## Fase 5 — completada
 
-Alertas +48 h y tarea programada, correos, reportes y Excel, edición de
-activos desde la interfaz, carga masiva y sincronización offline.
+Alertas administrativas: tabla `alerts` (TRANSITO_48H / OMISION_PROTOCOLO,
+OPEN / RESOLVED) con índices y restricción única por (tipo, movimiento);
+trigger que crea la alerta de omisión dentro del registro del movimiento;
+RPC idempotente `run_transit_48h_check`, `list_alerts`, `list_asset_alerts`,
+`resolve_alert` y `alerts_dashboard`, todas restringidas a administradores;
+pantalla /admin/alertas con pestañas y diálogo de resolución con notas
+obligatorias; indicadores y botón de revisión en /dashboard; sección
+"Alertas relacionadas" en la ficha del activo (solo admin).
+
+## Pendiente
+
+Tarea programada cada hora, correos/Outlook, notificaciones push, reportes
+Excel y gráficos, reapertura de alertas, edición de activos desde la
+interfaz, carga masiva y sincronización offline.
