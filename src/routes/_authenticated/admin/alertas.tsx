@@ -60,6 +60,25 @@ export const Route = createFileRoute("/_authenticated/admin/alertas")({
 function AlertCard({ alert, onResolve }: { alert: AlertRow; onResolve: (a: AlertRow) => void }) {
   const meta = alert.metadata ?? {};
   const isTransit = alert.type === "TRANSITO_48H";
+  const queryClient = useQueryClient();
+  const [retrying, setRetrying] = useState(false);
+
+  async function handleRetry() {
+    setRetrying(true);
+    try {
+      const result = await retryAlertNotification(alert.id);
+      if (result.status === "SENT") toast.success("Notificación enviada.");
+      else
+        toast.error(
+          result.error ?? "No fue posible enviar la notificación.",
+        );
+      await queryClient.invalidateQueries({ queryKey: ["alerts"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No fue posible reintentar el envío.");
+    } finally {
+      setRetrying(false);
+    }
+  }
 
   return (
     <article className="rounded-xl border border-border bg-card p-5">
