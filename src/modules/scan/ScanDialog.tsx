@@ -55,24 +55,7 @@ export function ScanDialog({
           }}
         />
 
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Button
-            type="button"
-            className="h-14 text-base"
-            onClick={() => setCameraOn((v) => !v)}
-          >
-            {cameraOn ? (
-              <>
-                <CameraOff className="mr-2 h-5 w-5" />
-                Detener escáner
-              </>
-            ) : (
-              <>
-                <Camera className="mr-2 h-5 w-5" />
-                Iniciar escáner
-              </>
-            )}
-          </Button>
+        <div className="grid gap-2">
           <Button
             type="button"
             variant="outline"
@@ -82,9 +65,10 @@ export function ScanDialog({
               onOpenChange(false);
             }}
           >
-            Cancelar
+            Cerrar
           </Button>
         </div>
+
 
         {engine && (
           <p className="text-xs text-muted-foreground">
