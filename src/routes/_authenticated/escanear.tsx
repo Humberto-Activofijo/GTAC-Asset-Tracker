@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Camera, CameraOff, Keyboard, Loader2, Plus, Search } from "lucide-react";
 
 import { PageHeader } from "@/modules/layout/PageHeader";
