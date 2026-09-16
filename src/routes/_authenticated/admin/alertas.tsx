@@ -118,11 +118,24 @@ function AlertCard({ alert, onResolve }: { alert: AlertRow; onResolve: (a: Alert
           </div>
           <p className="mt-2 text-sm text-foreground">{alert.message}</p>
         </div>
-        {alert.status === "OPEN" && (
-          <Button size="sm" onClick={() => onResolve(alert)}>
-            Resolver
-          </Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {alert.email_status !== "SENT" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void handleRetry()}
+              disabled={retrying}
+            >
+              {retrying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Reintentar notificación
+            </Button>
+          )}
+          {alert.status === "OPEN" && (
+            <Button size="sm" onClick={() => onResolve(alert)}>
+              Resolver
+            </Button>
+          )}
+        </div>
       </div>
 
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
