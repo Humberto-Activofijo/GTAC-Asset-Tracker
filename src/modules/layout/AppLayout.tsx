@@ -58,12 +58,12 @@ export function GtacBrand({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function NavLinks({ onNavigate, isAdmin }: { onNavigate?: () => void; isAdmin: boolean }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
     <nav className="flex flex-col gap-1">
-      {NAV_ITEMS.map((item) => {
+      {NAV_ITEMS.filter((item) => isAdmin || !item.adminOnly).map((item) => {
         const active = pathname === item.to;
         const Icon = item.icon;
         return (
@@ -143,7 +143,7 @@ export function AppLayout({ user, children }: { user: CurrentUser; children: Rea
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col justify-between border-r border-border bg-card px-4 py-5 lg:flex">
         <div className="space-y-6">
           <GtacBrand />
-          <NavLinks />
+          <NavLinks isAdmin={user.role === "admin"} />
         </div>
         <UserMenu user={user} />
       </aside>
@@ -163,7 +163,10 @@ export function AppLayout({ user, children }: { user: CurrentUser; children: Rea
             <div className="flex h-full flex-col justify-between">
               <div className="space-y-6">
                 <GtacBrand />
-                <NavLinks onNavigate={() => setMobileOpen(false)} />
+                <NavLinks
+                  onNavigate={() => setMobileOpen(false)}
+                  isAdmin={user.role === "admin"}
+                />
               </div>
               <UserMenu user={user} />
             </div>
