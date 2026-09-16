@@ -139,15 +139,23 @@ export type TransitCheckResult = {
   alerts_created: number;
   alerts_existing: number;
   errors: number;
+  emails_sent: number;
+  email_errors: number;
 };
 
-/** Revisión manual idempotente: solo crea las alertas faltantes. */
+/**
+ * Revisión manual idempotente en el servidor: crea solo las alertas faltantes
+ * y notifica por correo únicamente las creadas en esta ejecución.
+ */
 export async function runTransitCheck(): Promise<TransitCheckResult> {
-  const { data, error } = await rpc("run_transit_48h_check");
-  if (error) throw new Error(error.message);
-  const row = (data as TransitCheckResult[] | null)?.[0];
-  if (!row) throw new Error("No fue posible ejecutar la revisión.");
-  return row;
+  return await runTransitCheckWithEmail();
+}
+
+/** Reintento manual del correo de una alerta (solo administradores). */
+export async function retryAlertNotification(
+  alertId: string,
+): Promise<{ status: string; error?: string }> {
+  return await retryAlertEmailFn({ data: { alertId } });
 }
 
 export async function resolveAlert(alertId: string, notes: string): Promise<void> {
