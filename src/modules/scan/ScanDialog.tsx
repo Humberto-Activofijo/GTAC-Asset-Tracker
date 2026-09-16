@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Camera, CameraOff } from "lucide-react";
+
 
 import { BarcodeScanner, type ScanEngine } from "./BarcodeScanner";
 import { normalizeCode } from "@/modules/assets/lookup";
