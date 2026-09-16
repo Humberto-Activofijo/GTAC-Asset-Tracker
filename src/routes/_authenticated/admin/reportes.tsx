@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
@@ -87,8 +87,6 @@ function Pager({
 }
 
 function ReportesPage() {
-  const navigate = useNavigate();
-  void navigate;
   const userQ = useQuery(currentUserQuery);
   const isAdmin = userQ.data?.role === "admin";
   const sitesQ = useQuery(visibleSitesQuery);
@@ -309,7 +307,7 @@ function MovementsReport({
             <Select
               value={filters.omission || ALL}
               onValueChange={(v) =>
-                patch({ omission: v === ALL ? "" : (v as MovementReportFilters["omission"]) })
+                patch({ omission: v === ALL ? "" : (v as "yes" | "no") })
               }
             >
               <SelectTrigger>
