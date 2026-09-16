@@ -63,8 +63,18 @@ protocolo; botón "Reintentar notificación" para administradores; sin cron ni
 revisión automática. Configuración documentada en docs/CORREO_ALERTAS.md
 (pendiente de credenciales reales de Microsoft 365).
 
+## Fase 6 — completada
+
+Dashboard administrativo con selector de periodo y cuatro gráficos, reportes de
+movimientos e inventario con filtros y paginación del lado del servidor,
+contadores y tabla de activos por sitio, y exportación real a .xlsx generada en
+el servidor (`/api/reports/movements`, `/api/reports/inventory`) con recorrido
+por cursor en bloques de 1,000 filas. Exportación exclusiva de administradores,
+verificada en el servidor. Fechas almacenadas en UTC y mostradas en
+America/Mexico_City.
+
 ## Pendiente
 
-Credenciales Microsoft 365 para activar el envío real, tarea programada, notificaciones push, reportes
-Excel y gráficos, reapertura de alertas, edición de activos desde la
+Credenciales Microsoft 365 para activar el envío real, tarea programada,
+notificaciones push, reapertura de alertas, edición de activos desde la
 interfaz, carga masiva y sincronización offline.

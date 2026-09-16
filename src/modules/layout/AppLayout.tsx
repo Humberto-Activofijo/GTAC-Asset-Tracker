@@ -38,7 +38,7 @@ const NAV_ITEMS = [
   { to: "/movimientos", label: "Movimientos", icon: ArrowLeftRight, adminOnly: false },
   { to: "/ingenieros", label: "Ingenieros", icon: Users, adminOnly: false },
   { to: "/admin/alertas", label: "Alertas", icon: Bell, adminOnly: true },
-  { to: "/reportes", label: "Reportes", icon: FileText, adminOnly: false },
+  { to: "/admin/reportes", label: "Reportes", icon: FileText, adminOnly: false },
   { to: "/escanear", label: "Escanear", icon: ScanLine, adminOnly: false },
 ] as const;
 
