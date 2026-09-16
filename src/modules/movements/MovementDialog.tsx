@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Camera, ImagePlus, Loader2, MapPin, MapPinOff, X } from "lucide-react";
 import { toast } from "sonner";
 
+import { notifyMovementAlerts } from "@/lib/alerts.functions";
+
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/lib/image";
 import { ASSET_CONDITIONS, CONDITION_LABEL, STATUS_LABEL, type AssetCondition } from "@/modules/assets/queries";
