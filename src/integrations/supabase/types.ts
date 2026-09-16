@@ -458,6 +458,10 @@ export type Database = {
           transit_48h: number
         }[]
       }
+      dashboard_metrics: {
+        Args: { _from?: string; _to?: string }
+        Returns: Json
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -543,6 +547,67 @@ export type Database = {
           protocol_omission: boolean
         }[]
       }
+      report_inventory: {
+        Args: {
+          _asset_number?: string
+          _condition?: string
+          _limit?: number
+          _model?: string
+          _offset?: number
+          _serial_number?: string
+          _site_id?: string
+          _status?: string
+        }
+        Returns: {
+          asset_number: string
+          category: string
+          condition: string
+          created_at: string
+          id: string
+          last_movement_at: string
+          model: string
+          serial_number: string
+          site_id: string
+          site_name: string
+          status: string
+          total_count: number
+        }[]
+      }
+      report_movements: {
+        Args: {
+          _action?: string
+          _asset_number?: string
+          _condition?: string
+          _from?: string
+          _limit?: number
+          _offset?: number
+          _omission?: boolean
+          _site_id?: string
+          _to?: string
+          _user_id?: string
+        }
+        Returns: {
+          action: string
+          asset_id: string
+          asset_number: string
+          condition: string
+          has_gps: boolean
+          has_photo: boolean
+          latitude: number
+          longitude: number
+          model: string
+          notes: string
+          occurred_at: string
+          protocol_omission: boolean
+          resulting_status: string
+          row_id: string
+          serial_number: string
+          site_id: string
+          site_name: string
+          total_count: number
+          user_email: string
+        }[]
+      }
       resolve_alert: {
         Args: { _alert_id: string; _notes: string }
         Returns: {
@@ -559,6 +624,16 @@ export type Database = {
           assets_reviewed: number
           created_ids: string[]
           errors: number
+        }[]
+      }
+      site_asset_counts: {
+        Args: { _site_id: string }
+        Returns: {
+          activos: number
+          danados: number
+          desconectados: number
+          en_transito: number
+          total: number
         }[]
       }
     }
