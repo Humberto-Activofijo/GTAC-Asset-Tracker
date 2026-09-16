@@ -3,7 +3,8 @@ import * as XLSX from "xlsx";
 
 import { APP_TIME_ZONE } from "@/lib/datetime";
 
-const BATCH_SIZE = 5000;
+// PostgREST limita cada respuesta a 1000 filas: el lote coincide con ese tope.
+const BATCH_SIZE = 1000;
 const MAX_ROWS = 250_000;
 
 const dateFmt = new Intl.DateTimeFormat("es-MX", {
@@ -87,13 +88,14 @@ export async function assertAdmin(client: AnyClient): Promise<void> {
  * Recorre la función de reporte por lotes en el servidor: nunca se materializa
  * el conjunto completo en el navegador.
  */
-export async function fetchAllRows<T>(
+export async function fetchAllRows<T extends { total_count?: number }>(
   client: AnyClient,
   fn: string,
   params: Record<string, unknown>,
 ): Promise<T[]> {
   const all: T[] = [];
-  for (let offset = 0; offset < MAX_ROWS; offset += BATCH_SIZE) {
+  let total = Infinity;
+  for (let offset = 0; offset < MAX_ROWS && all.length < total; offset += BATCH_SIZE) {
     const { data, error } = await (
       client.rpc as unknown as (
         name: string,
@@ -102,8 +104,9 @@ export async function fetchAllRows<T>(
     ).call(client, fn, { ...params, _limit: BATCH_SIZE, _offset: offset });
     if (error) throw new Error(error.message);
     const batch = (data ?? []) as T[];
+    if (batch.length === 0) break;
+    if (total === Infinity) total = batch[0]?.total_count ?? batch.length;
     all.push(...batch);
-    if (batch.length < BATCH_SIZE) break;
   }
   return all;
 }
