@@ -493,7 +493,7 @@ export function BarcodeScanner({
         frame: "—",
         crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
-        mode: "normal",
+        mode: "directo",
         rates: "—",
       });
 
@@ -502,7 +502,7 @@ export function BarcodeScanner({
       let busy = false;
       let lastTick = 0;
       let lastZxing = 0;
-      let turn = 0;
+      let firstMiss = 0;
 
       const loop = (ts: number) => {
         if (token !== runRef.current) return;
@@ -511,25 +511,31 @@ export function BarcodeScanner({
         if (busy || pauseRef.current > 0 || document.hidden) return;
         if (ts - lastTick < NATIVE_INTERVAL_MS) return;
         lastTick = ts;
-        turn += 1;
+        if (!firstMiss) firstMiss = ts;
 
-        // Ruta QR dedicada sobre el MISMO video, a su propia frecuencia.
-        if (qr && ts - lastZxing >= engine.zxingInterval()) {
+        // Respaldo avanzado: solo con Etiqueta pequeña, sin QR nativo o tras ~1.2 s sin lectura.
+        const advanced =
+          qr !== null &&
+          (smallLabelRef.current || !nativeQrSupported || ts - firstMiss >= ADVANCED_AFTER_MS);
+        if (advanced && ts - lastZxing >= engine.zxingInterval()) {
           lastZxing = ts;
-          const hit = engine.run(ts);
-          if (hit) {
-            handleCode(hit);
+          const found = engine.run(ts);
+          if (found) {
+            firstMiss = 0;
+            handleCode(found);
             return;
           }
         }
 
+        // Modo directo: el detector nativo trabaja sobre el video completo, sin canvas.
         busy = true;
-        const useCenter = smallLabelRef.current || turn % 4 === 1;
-        const source: CanvasImageSource = (useCenter ? cropCenter() : null) ?? video;
         detector
-          .detect(source)
+          .detect(video)
           .then((codes) => {
-            if (token === runRef.current && codes?.[0]?.rawValue) handleCode(codes[0].rawValue);
+            if (token === runRef.current && codes?.[0]?.rawValue) {
+              firstMiss = 0;
+              handleCode(codes[0].rawValue);
+            }
           })
           .catch(() => undefined)
           .finally(() => {
@@ -539,6 +545,7 @@ export function BarcodeScanner({
       scheduleFrame(video, loop);
       return;
     }
+
 
 
     // Respaldo para navegadores sin detección nativa (mantiene la resolución del video).
