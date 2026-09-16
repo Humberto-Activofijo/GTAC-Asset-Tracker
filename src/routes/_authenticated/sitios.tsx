@@ -13,6 +13,7 @@ import {
   visibleSitesQuery,
   type Site,
 } from "@/modules/sites/queries";
+import { SiteAssetsDialog } from "@/modules/sites/SiteAssetsDialog";
 import { PageHeader } from "@/modules/layout/PageHeader";
 import { formatDateTime } from "@/lib/datetime";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,7 @@ function SitiosPage() {
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState<SiteForm>(EMPTY_FORM);
   const [assignSite, setAssignSite] = useState<Site | null>(null);
+  const [assetsSite, setAssetsSite] = useState<Site | null>(null);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -148,7 +150,7 @@ function SitiosPage() {
                   <th className="px-4 py-3 font-medium">Código</th>
                   <th className="px-4 py-3 font-medium">Estado</th>
                   <th className="px-4 py-3 font-medium">Actualizado</th>
-                  {isAdmin && <th className="px-4 py-3" />}
+                  <th className="px-4 py-3" />
                 </tr>
               </thead>
               <tbody>
@@ -162,8 +164,12 @@ function SitiosPage() {
                     <td className="px-4 py-3 text-muted-foreground">
                       {formatDateTime(site.updated_at)}
                     </td>
-                    {isAdmin && (
-                      <td className="whitespace-nowrap px-4 py-3 text-right">
+                    <td className="whitespace-nowrap px-4 py-3 text-right">
+                      <Button variant="ghost" size="sm" onClick={() => setAssetsSite(site)}>
+                        Ver activos
+                      </Button>
+                      {isAdmin && (
+                        <>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -184,8 +190,9 @@ function SitiosPage() {
                         <Button variant="ghost" size="sm" onClick={() => setAssignSite(site)}>
                           Ingenieros
                         </Button>
-                      </td>
-                    )}
+                        </>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -193,6 +200,8 @@ function SitiosPage() {
           </div>
         </div>
       )}
+
+      <SiteAssetsDialog site={assetsSite} onClose={() => setAssetsSite(null)} />
 
       <Dialog
         open={creating || editing !== null}
