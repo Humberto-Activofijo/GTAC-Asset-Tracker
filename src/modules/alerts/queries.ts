@@ -57,6 +57,9 @@ export type AlertRow = {
   origin_site_name: string | null;
   hours_in_transit: number | null;
   subsequent_entry_at: string | null;
+  email_status: AlertEmailStatus;
+  email_sent_at: string | null;
+  email_error: string | null;
   total_count: number;
 };
 
