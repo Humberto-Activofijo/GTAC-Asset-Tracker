@@ -5,12 +5,14 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
+  ALERT_EMAIL_STATUS_LABEL,
   ALERT_STATUS_LABEL,
   ALERT_TYPE_LABEL,
   type AlertRow,
   alertsListQuery,
   relativeAge,
   resolveAlert,
+  retryAlertNotification,
 } from "@/modules/alerts/queries";
 import { TransitCheckButton } from "@/modules/alerts/TransitCheckButton";
 import { currentUserQuery } from "@/modules/auth/queries";
@@ -58,6 +60,25 @@ export const Route = createFileRoute("/_authenticated/admin/alertas")({
 function AlertCard({ alert, onResolve }: { alert: AlertRow; onResolve: (a: AlertRow) => void }) {
   const meta = alert.metadata ?? {};
   const isTransit = alert.type === "TRANSITO_48H";
+  const queryClient = useQueryClient();
+  const [retrying, setRetrying] = useState(false);
+
+  async function handleRetry() {
+    setRetrying(true);
+    try {
+      const result = await retryAlertNotification(alert.id);
+      if (result.status === "SENT") toast.success("Notificación enviada.");
+      else
+        toast.error(
+          result.error ?? "No fue posible enviar la notificación.",
+        );
+      await queryClient.invalidateQueries({ queryKey: ["alerts"] });
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No fue posible reintentar el envío.");
+    } finally {
+      setRetrying(false);
+    }
+  }
 
   return (
     <article className="rounded-xl border border-border bg-card p-5">
@@ -77,6 +98,16 @@ function AlertCard({ alert, onResolve }: { alert: AlertRow; onResolve: (a: Alert
             <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
               {ALERT_STATUS_LABEL[alert.status]}
             </span>
+            <span
+              className={cn(
+                "rounded-full border px-2 py-0.5 text-xs",
+                alert.email_status === "SENT"
+                  ? "border-border text-muted-foreground"
+                  : "border-destructive/40 text-destructive",
+              )}
+            >
+              {ALERT_EMAIL_STATUS_LABEL[alert.email_status]}
+            </span>
             <Link
               to="/activos/$assetId"
               params={{ assetId: alert.asset_id }}
@@ -87,17 +118,36 @@ function AlertCard({ alert, onResolve }: { alert: AlertRow; onResolve: (a: Alert
           </div>
           <p className="mt-2 text-sm text-foreground">{alert.message}</p>
         </div>
-        {alert.status === "OPEN" && (
-          <Button size="sm" onClick={() => onResolve(alert)}>
-            Resolver
-          </Button>
-        )}
+        <div className="flex flex-wrap gap-2">
+          {alert.email_status !== "SENT" && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void handleRetry()}
+              disabled={retrying}
+            >
+              {retrying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Reintentar notificación
+            </Button>
+          )}
+          {alert.status === "OPEN" && (
+            <Button size="sm" onClick={() => onResolve(alert)}>
+              Resolver
+            </Button>
+          )}
+        </div>
       </div>
 
       <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
         <Detail label="Sitio relacionado" value={alert.site_name ?? "—"} />
         <Detail label="Fecha" value={formatDateTime(alert.created_at)} />
         <Detail label="Antigüedad" value={relativeAge(alert.created_at)} />
+        {alert.email_sent_at && (
+          <Detail label="Correo enviado" value={formatDateTime(alert.email_sent_at)} />
+        )}
+        {alert.email_error && alert.email_status !== "SENT" && (
+          <Detail label="Detalle del correo" value={alert.email_error} />
+        )}
 
         {isTransit ? (
           <>

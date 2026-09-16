@@ -18,6 +18,9 @@ export type Database = {
         Row: {
           asset_id: string
           created_at: string
+          email_error: string | null
+          email_sent_at: string | null
+          email_status: Database["public"]["Enums"]["alert_email_status"]
           id: string
           message: string
           metadata: Json
@@ -32,6 +35,9 @@ export type Database = {
         Insert: {
           asset_id: string
           created_at?: string
+          email_error?: string | null
+          email_sent_at?: string | null
+          email_status?: Database["public"]["Enums"]["alert_email_status"]
           id?: string
           message: string
           metadata?: Json
@@ -46,6 +52,9 @@ export type Database = {
         Update: {
           asset_id?: string
           created_at?: string
+          email_error?: string | null
+          email_sent_at?: string | null
+          email_status?: Database["public"]["Enums"]["alert_email_status"]
           id?: string
           message?: string
           metadata?: Json
@@ -467,6 +476,9 @@ export type Database = {
           asset_number: string
           created_at: string
           departed_at: string
+          email_error: string
+          email_sent_at: string
+          email_status: Database["public"]["Enums"]["alert_email_status"]
           hours_in_transit: number
           id: string
           message: string
@@ -545,11 +557,13 @@ export type Database = {
           alerts_created: number
           alerts_existing: number
           assets_reviewed: number
+          created_ids: string[]
           errors: number
         }[]
       }
     }
     Enums: {
+      alert_email_status: "PENDING" | "SENT" | "FAILED"
       alert_status: "OPEN" | "RESOLVED"
       alert_type: "TRANSITO_48H" | "OMISION_PROTOCOLO"
       app_role: "admin" | "engineer"
@@ -683,6 +697,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      alert_email_status: ["PENDING", "SENT", "FAILED"],
       alert_status: ["OPEN", "RESOLVED"],
       alert_type: ["TRANSITO_48H", "OMISION_PROTOCOLO"],
       app_role: ["admin", "engineer"],

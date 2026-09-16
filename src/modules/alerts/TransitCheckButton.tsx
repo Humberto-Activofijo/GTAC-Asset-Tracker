@@ -16,7 +16,7 @@ export function TransitCheckButton({ variant = "default" }: { variant?: "default
     try {
       const r = await runTransitCheck();
       toast.success("Revisión completada", {
-        description: `${r.assets_reviewed} activo(s) revisados · ${r.alerts_created} alerta(s) nueva(s) · ${r.alerts_existing} ya existente(s) · ${r.errors} error(es).`,
+        description: `Activos revisados: ${r.assets_reviewed} · Nuevas alertas: ${r.alerts_created} · Alertas existentes: ${r.alerts_existing} · Correos enviados: ${r.emails_sent} · Errores de correo: ${r.email_errors}`,
       });
       await queryClient.invalidateQueries({ queryKey: ["alerts"] });
     } catch (error) {

@@ -1,6 +1,18 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import {
+  retryAlertEmail as retryAlertEmailFn,
+  runTransitCheckWithEmail,
+} from "@/lib/alerts.functions";
+
+export type AlertEmailStatus = "PENDING" | "SENT" | "FAILED";
+
+export const ALERT_EMAIL_STATUS_LABEL: Record<AlertEmailStatus, string> = {
+  PENDING: "Correo pendiente",
+  SENT: "Correo enviado",
+  FAILED: "Correo fallido",
+};
 
 export type AlertType = "TRANSITO_48H" | "OMISION_PROTOCOLO";
 export type AlertStatus = "OPEN" | "RESOLVED";
@@ -45,6 +57,9 @@ export type AlertRow = {
   origin_site_name: string | null;
   hours_in_transit: number | null;
   subsequent_entry_at: string | null;
+  email_status: AlertEmailStatus;
+  email_sent_at: string | null;
+  email_error: string | null;
   total_count: number;
 };
 
@@ -124,15 +139,23 @@ export type TransitCheckResult = {
   alerts_created: number;
   alerts_existing: number;
   errors: number;
+  emails_sent: number;
+  email_errors: number;
 };
 
-/** Revisión manual idempotente: solo crea las alertas faltantes. */
+/**
+ * Revisión manual idempotente en el servidor: crea solo las alertas faltantes
+ * y notifica por correo únicamente las creadas en esta ejecución.
+ */
 export async function runTransitCheck(): Promise<TransitCheckResult> {
-  const { data, error } = await rpc("run_transit_48h_check");
-  if (error) throw new Error(error.message);
-  const row = (data as TransitCheckResult[] | null)?.[0];
-  if (!row) throw new Error("No fue posible ejecutar la revisión.");
-  return row;
+  return await runTransitCheckWithEmail();
+}
+
+/** Reintento manual del correo de una alerta (solo administradores). */
+export async function retryAlertNotification(
+  alertId: string,
+): Promise<{ status: string; error?: string }> {
+  return await retryAlertEmailFn({ data: { alertId } });
 }
 
 export async function resolveAlert(alertId: string, notes: string): Promise<void> {

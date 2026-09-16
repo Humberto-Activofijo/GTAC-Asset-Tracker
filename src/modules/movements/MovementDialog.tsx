@@ -3,6 +3,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Camera, ImagePlus, Loader2, MapPin, MapPinOff, X } from "lucide-react";
 import { toast } from "sonner";
 
+import { notifyMovementAlerts } from "@/lib/alerts.functions";
+
 import { supabase } from "@/integrations/supabase/client";
 import { compressImage } from "@/lib/image";
 import { ASSET_CONDITIONS, CONDITION_LABEL, STATUS_LABEL, type AssetCondition } from "@/modules/assets/queries";
@@ -178,6 +180,13 @@ export function MovementDialog({
       });
     },
     onSuccess: (result) => {
+      // La omisión ya quedó registrada; el correo se intenta aparte y su fallo
+      // no revierte el movimiento ni elimina la alerta.
+      if (result.protocol_omission && !result.duplicate) {
+        void notifyMovementAlerts({ data: { movementId: result.movement_id } }).catch(
+          (notifyError: unknown) => console.error("[alerts] notificación:", notifyError),
+        );
+      }
       toast.success(
         result.duplicate
           ? "Este movimiento ya estaba registrado."
