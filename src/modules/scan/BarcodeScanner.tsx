@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, Flashlight, FlashlightOff, Loader2, ScanLine, ScanSearch } from "lucide-react";
+import {
+  CameraOff,
+  Flashlight,
+  FlashlightOff,
+  Loader2,
+  ScanLine,
+  ScanSearch,
+  Settings2,
+} from "lucide-react";
+
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
