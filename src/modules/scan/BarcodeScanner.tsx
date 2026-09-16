@@ -671,15 +671,18 @@ export function BarcodeScanner({
         />
 
         {status === "scanning" && (
+          // Guía visual discreta: NO limita el área analizada en modo directo.
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div
               className={cn(
-                "h-52 w-52 rounded-xl border-4 transition-colors sm:h-60 sm:w-60",
-                hit ? "border-foreground" : "border-background/80",
+                "h-40 w-40 rounded-xl border transition-colors sm:h-48 sm:w-48",
+                hit ? "border-2 border-foreground" : "border-background/40",
+                smallLabel && "h-52 w-52 border-4 border-background/80 sm:h-60 sm:w-60",
               )}
             />
           </div>
         )}
+
 
         {status === "scanning" && smallLabel && (
           <div className="pointer-events-none absolute inset-x-0 top-0 bg-background/85 px-4 py-2 text-center text-sm font-medium text-foreground">
