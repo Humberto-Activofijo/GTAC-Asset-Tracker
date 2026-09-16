@@ -53,8 +53,18 @@ pantalla /admin/alertas con pestañas y diálogo de resolución con notas
 obligatorias; indicadores y botón de revisión en /dashboard; sección
 "Alertas relacionadas" en la ficha del activo (solo admin).
 
+## Fase 5.1 — completada
+
+Notificación por correo de alertas mediante Microsoft Graph del lado del
+servidor: columnas `email_status`, `email_sent_at`, `email_error` en `alerts`;
+`run_transit_48h_check` devuelve los identificadores creados y solo se notifica
+por esas alertas nuevas; correo inmediato al generarse una omisión de
+protocolo; botón "Reintentar notificación" para administradores; sin cron ni
+revisión automática. Configuración documentada en docs/CORREO_ALERTAS.md
+(pendiente de credenciales reales de Microsoft 365).
+
 ## Pendiente
 
-Tarea programada cada hora, correos/Outlook, notificaciones push, reportes
+Credenciales Microsoft 365 para activar el envío real, tarea programada, notificaciones push, reportes
 Excel y gráficos, reapertura de alertas, edición de activos desde la
 interfaz, carga masiva y sincronización offline.
