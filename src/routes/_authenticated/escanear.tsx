@@ -63,8 +63,8 @@ function ScanPage() {
     onSuccess: (data) => setResult(data),
   });
 
-  // Al salir de la pantalla la cámara se apaga y el stream se libera.
-  useEffect(() => () => setCameraOn(false), []);
+  // El escáner libera la cámara al desmontarse; no hace falta apagarla aquí.
+
 
   function handleCode(code: string) {
     setCameraOn(false);
