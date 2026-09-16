@@ -53,7 +53,8 @@ type RpcFn = (
   params?: Record<string, unknown>,
 ) => Promise<{ data: unknown; error: { message: string } | null }>;
 
-const rpc = supabase.rpc as unknown as RpcFn;
+const rpc: RpcFn = (fn, params) =>
+  (supabase.rpc as unknown as RpcFn).call(supabase, fn, params);
 
 /** Listado administrativo; el backend verifica el rol y enriquece cada alerta. */
 export function alertsListQuery(status: "OPEN" | "RESOLVED" | "ALL", enabled: boolean) {
