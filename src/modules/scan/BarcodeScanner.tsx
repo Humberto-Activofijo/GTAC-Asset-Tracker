@@ -1,5 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CameraOff, Flashlight, FlashlightOff, Loader2, ScanLine, ScanSearch } from "lucide-react";
+import {
+  CameraOff,
+  Flashlight,
+  FlashlightOff,
+  Loader2,
+  ScanLine,
+  ScanSearch,
+  Settings2,
+} from "lucide-react";
+
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,21 +32,22 @@ const WANTED_FORMATS = [
   "itf",
 ];
 
-/** ~20 intentos por segundo con detector nativo. */
+/** ~20 intentos por segundo con detector nativo sobre el video completo. */
 const NATIVE_INTERVAL_MS = 50;
-/** ZXing QR en modo normal: ~8 intentos por segundo. */
+/** ZXing QR (solo en modo avanzado): ~8 intentos por segundo. */
 const ZXING_INTERVAL_MS = 125;
-/** jsQR en modo normal (solo tras el retraso adaptativo): ~2 intentos por segundo. */
+/** jsQR en modo avanzado: ~2 intentos por segundo. */
 const JSQR_INTERVAL_MS = 500;
 /** jsQR en modo Etiqueta pequeña (alta precisión): ~3 intentos por segundo. */
 const JSQR_INTERVAL_SMALL_MS = 320;
-/** Tiempo sin encontrar QR antes de activar el modo QR difícil. */
-const HARD_MODE_AFTER_MS = 1000;
+/** Tiempo sin lectura en modo directo antes de encender el respaldo avanzado. */
+const ADVANCED_AFTER_MS = 1200;
 /** Si un intento pesado supera este tiempo, se espacian los siguientes. */
 const SLOW_ATTEMPT_MS = 90;
-/** Proporción del lado analizado en la zona central. */
+/** Proporción del lado analizado en la zona central (solo modo avanzado). */
 const ROI_RATIO = 0.62;
 const DEDUPE_MS = 2000;
+
 
 type DetectorLike = {
   detect: (source: CanvasImageSource) => Promise<{ rawValue: string; format?: string }[]>;
@@ -106,6 +116,8 @@ export function BarcodeScanner({
   const [torchOn, setTorchOn] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null);
   const [smallLabel, setSmallLabel] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+
   const smallLabelRef = useRef(false);
   smallLabelRef.current = smallLabel;
   const [diag, setDiag] = useState<{
@@ -243,11 +255,9 @@ export function BarcodeScanner({
   );
 
   /**
-   * Motor QR de dos niveles sobre el mismo stream:
-   *  - Modo normal: solo ZXing QR sobre la zona central (bajo consumo).
-   *  - Modo QR difícil: se activa con Etiqueta pequeña o tras ~1 s sin lectura,
-   *    y habilita jsQR con variantes escalonadas (una por intento).
-   * La frecuencia de jsQR se adapta al rendimiento real del teléfono.
+   * Respaldo avanzado de QR (Fases 4.3/4.4) sobre el MISMO stream.
+   * En modo directo no se ejecuta: solo se activa cuando pasan ~1.2 s sin
+   * lectura o cuando el usuario enciende Etiqueta pequeña.
    */
   const makeQrEngine = useCallback(
     (
@@ -256,7 +266,6 @@ export function BarcodeScanner({
       cropCenter: () => HTMLCanvasElement | null,
       fullFrame: () => HTMLCanvasElement | null,
     ) => {
-      let firstMiss = 0;
       let lastJs = 0;
       let penalty = 1;
       let stage = 0;
@@ -281,17 +290,10 @@ export function BarcodeScanner({
           m.zxing += 1;
 
           const zxingHit = hit !== null;
-          const hard = smallLabelRef.current || (firstMiss > 0 && ts - firstMiss >= HARD_MODE_AFTER_MS);
-          if (zxingHit) {
-            firstMiss = 0;
-            stage = 0;
-          } else if (firstMiss === 0) {
-            firstMiss = ts;
-          }
 
-          // jsQR solo en modo QR difícil, con una variante por intento.
+          // jsQR con una variante por intento, adaptando la frecuencia al teléfono.
           const base = smallLabelRef.current ? JSQR_INTERVAL_SMALL_MS : JSQR_INTERVAL_MS;
-          if (!hit && hard && qr.fallbackReady && ts - lastJs >= base * penalty) {
+          if (!hit && qr.fallbackReady && ts - lastJs >= base * penalty) {
             lastJs = ts;
             const stageName = QR_STAGES[stage % QR_STAGES.length]!;
             const t0 = performance.now();
@@ -300,22 +302,18 @@ export function BarcodeScanner({
             const cost = performance.now() - t0;
             m.jsqr += 1;
             m.jsqrMs += cost;
-            // Adaptación al rendimiento: si el ciclo pesado tarda, se espacia el siguiente.
             penalty = cost > SLOW_ATTEMPT_MS ? Math.min(4, penalty + 0.5) : Math.max(1, penalty - 0.25);
             stage = hit ? 0 : stage + 1;
           }
 
-          if (hit) {
-            firstMiss = 0;
-            stage = 0;
-          }
+          if (hit) stage = 0;
 
           if (import.meta.env.DEV) {
             const elapsed = Math.max(1, ts - m.since) / 1000;
             const rates = `ZXing ${(m.zxing / elapsed).toFixed(1)}/s · jsQR ${(m.jsqr / elapsed).toFixed(1)}/s · ${
               m.jsqr ? (m.jsqrMs / m.jsqr).toFixed(0) : 0
             } ms`;
-            const mode = smallLabelRef.current ? "etiqueta pequeña" : hard ? "QR difícil" : "normal";
+            const mode = smallLabelRef.current ? "etiqueta pequeña" : "avanzado";
             const frame = full ? `${full.width}×${full.height}` : `${video.videoWidth}×${video.videoHeight}`;
             const crop = center ? `${center.width}×${center.height}` : "—";
             const key = [zxingHit, mode, rates, frame, crop].join("|");
@@ -340,6 +338,7 @@ export function BarcodeScanner({
     },
     [],
   );
+
 
   const start = useCallback(async () => {
     const token = ++runRef.current;
@@ -505,7 +504,7 @@ export function BarcodeScanner({
         frame: "—",
         crop: "—",
         resolution: `${video.videoWidth || settings.width || 0}×${video.videoHeight || settings.height || 0}`,
-        mode: "normal",
+        mode: "directo",
         rates: "—",
       });
 
@@ -514,7 +513,7 @@ export function BarcodeScanner({
       let busy = false;
       let lastTick = 0;
       let lastZxing = 0;
-      let turn = 0;
+      let firstMiss = 0;
 
       const loop = (ts: number) => {
         if (token !== runRef.current) return;
@@ -523,25 +522,31 @@ export function BarcodeScanner({
         if (busy || pauseRef.current > 0 || document.hidden) return;
         if (ts - lastTick < NATIVE_INTERVAL_MS) return;
         lastTick = ts;
-        turn += 1;
+        if (!firstMiss) firstMiss = ts;
 
-        // Ruta QR dedicada sobre el MISMO video, a su propia frecuencia.
-        if (qr && ts - lastZxing >= engine.zxingInterval()) {
+        // Respaldo avanzado: solo con Etiqueta pequeña, sin QR nativo o tras ~1.2 s sin lectura.
+        const advanced =
+          qr !== null &&
+          (smallLabelRef.current || !nativeQrSupported || ts - firstMiss >= ADVANCED_AFTER_MS);
+        if (advanced && ts - lastZxing >= engine.zxingInterval()) {
           lastZxing = ts;
-          const hit = engine.run(ts);
-          if (hit) {
-            handleCode(hit);
+          const found = engine.run(ts);
+          if (found) {
+            firstMiss = 0;
+            handleCode(found);
             return;
           }
         }
 
+        // Modo directo: el detector nativo trabaja sobre el video completo, sin canvas.
         busy = true;
-        const useCenter = smallLabelRef.current || turn % 4 === 1;
-        const source: CanvasImageSource = (useCenter ? cropCenter() : null) ?? video;
         detector
-          .detect(source)
+          .detect(video)
           .then((codes) => {
-            if (token === runRef.current && codes?.[0]?.rawValue) handleCode(codes[0].rawValue);
+            if (token === runRef.current && codes?.[0]?.rawValue) {
+              firstMiss = 0;
+              handleCode(codes[0].rawValue);
+            }
           })
           .catch(() => undefined)
           .finally(() => {
@@ -551,6 +556,7 @@ export function BarcodeScanner({
       scheduleFrame(video, loop);
       return;
     }
+
 
 
     // Respaldo para navegadores sin detección nativa (mantiene la resolución del video).
@@ -676,15 +682,18 @@ export function BarcodeScanner({
         />
 
         {status === "scanning" && (
+          // Guía visual discreta: NO limita el área analizada en modo directo.
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
             <div
               className={cn(
-                "h-52 w-52 rounded-xl border-4 transition-colors sm:h-60 sm:w-60",
-                hit ? "border-foreground" : "border-background/80",
+                "h-40 w-40 rounded-xl border transition-colors sm:h-48 sm:w-48",
+                hit ? "border-2 border-foreground" : "border-background/40",
+                smallLabel && "h-52 w-52 border-4 border-background/80 sm:h-60 sm:w-60",
               )}
             />
           </div>
         )}
+
 
         {status === "scanning" && smallLabel && (
           <div className="pointer-events-none absolute inset-x-0 top-0 bg-background/85 px-4 py-2 text-center text-sm font-medium text-foreground">
@@ -719,18 +728,9 @@ export function BarcodeScanner({
         )}
       </div>
 
+      {/* Uso normal: solo luz (si el teléfono la tiene) y acceso a opciones avanzadas. */}
       {status === "scanning" && (
         <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant={smallLabel ? "default" : "outline"}
-            className="h-14 flex-1 text-base sm:flex-none"
-            onClick={() => void toggleSmallLabel()}
-          >
-            <ScanSearch className="mr-2 h-5 w-5" />
-            Etiqueta pequeña
-          </Button>
-
           {caps?.torch && (
             <Button
               type="button"
@@ -746,55 +746,83 @@ export function BarcodeScanner({
               {torchOn ? "Apagar luz" : "Encender luz"}
             </Button>
           )}
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-14 flex-1 text-base sm:flex-none"
+            onClick={() => setOptionsOpen((v) => !v)}
+          >
+            <Settings2 className="mr-2 h-5 w-5" />
+            Opciones de escaneo
+          </Button>
+        </div>
+      )}
 
-          {zoomPresets.map((value, i) => (
-            <Button
-              key={value}
-              type="button"
-              variant={zoom !== null && Math.abs(zoom - value) < 0.05 ? "default" : "outline"}
-              className="h-14 min-w-14 text-base"
-              onClick={() => void applyZoom(value)}
+      {status === "scanning" && optionsOpen && (
+        <div className="space-y-3 rounded-xl border border-border p-3">
+          <Button
+            type="button"
+            variant={smallLabel ? "default" : "outline"}
+            className="h-14 w-full text-base"
+            onClick={() => void toggleSmallLabel()}
+          >
+            <ScanSearch className="mr-2 h-5 w-5" />
+            Etiqueta pequeña
+          </Button>
+
+          {zoomPresets.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {zoomPresets.map((value, i) => (
+                <Button
+                  key={value}
+                  type="button"
+                  variant={zoom !== null && Math.abs(zoom - value) < 0.05 ? "default" : "outline"}
+                  className="h-14 min-w-14 text-base"
+                  onClick={() => void applyZoom(value)}
+                >
+                  {i + 1}×
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {caps?.zoom && (
+            <label className="block text-xs text-muted-foreground">
+              Zoom de cámara
+              <input
+                type="range"
+                className="mt-1 h-10 w-full"
+                min={caps.zoom.min}
+                max={caps.zoom.max}
+                step={caps.zoom.step}
+                value={zoom ?? caps.zoom.min}
+                onChange={(e) => void applyZoom(Number(e.target.value))}
+              />
+            </label>
+          )}
+
+          {/* Diagnóstico temporal: solo visible en desarrollo. */}
+          {import.meta.env.DEV && diag && (
+            <div
+              data-testid="scan-diagnostics"
+              className="rounded-lg border border-dashed border-border p-3 font-mono text-xs text-muted-foreground"
             >
-              {i + 1}×
-            </Button>
-          ))}
+              <p>detector nativo activo: {diag.native ? "sí" : "no"}</p>
+              <p>QR nativo soportado: {diag.nativeQr ? "sí" : "no"}</p>
+              <p>ruta QR activa: {diag.qrRoute}</p>
+              <p>QR ZXing: {diag.zxingHit ? "detectado" : "no"}</p>
+              <p>QR fallback: {diag.fallbackReady ? "jsQR activo" : "no disponible"}</p>
+              <p>frame analizado: {diag.frame}</p>
+              <p>recorte central: {diag.crop}</p>
+              <p>resolución del stream: {diag.resolution}</p>
+              <p>modo de lectura QR: {diag.mode}</p>
+              <p>frecuencias: {diag.rates}</p>
+              <p>procesamiento: hilo principal</p>
+            </div>
+          )}
         </div>
       )}
 
-      {status === "scanning" && caps?.zoom && (
-        <label className="block text-xs text-muted-foreground">
-          Zoom de cámara
-          <input
-            type="range"
-            className="mt-1 h-10 w-full"
-            min={caps.zoom.min}
-            max={caps.zoom.max}
-            step={caps.zoom.step}
-            value={zoom ?? caps.zoom.min}
-            onChange={(e) => void applyZoom(Number(e.target.value))}
-          />
-        </label>
-      )}
-
-      {/* Diagnóstico temporal: solo visible en desarrollo. */}
-      {import.meta.env.DEV && diag && (
-        <div
-          data-testid="scan-diagnostics"
-          className="rounded-lg border border-dashed border-border p-3 font-mono text-xs text-muted-foreground"
-        >
-          <p>detector nativo activo: {diag.native ? "sí" : "no"}</p>
-          <p>QR nativo soportado: {diag.nativeQr ? "sí" : "no"}</p>
-          <p>ruta QR activa: {diag.qrRoute}</p>
-          <p>QR ZXing: {diag.zxingHit ? "detectado" : "no"}</p>
-          <p>QR fallback: {diag.fallbackReady ? "jsQR activo" : "no disponible"}</p>
-          <p>frame analizado: {diag.frame}</p>
-          <p>recorte central: {diag.crop}</p>
-          <p>resolución del stream: {diag.resolution}</p>
-          <p>modo de lectura QR: {diag.mode}</p>
-          <p>frecuencias: {diag.rates}</p>
-          <p>procesamiento: hilo principal</p>
-        </div>
-      )}
 
       {status === "error" && message && (
         <p role="alert" className="text-sm text-destructive">

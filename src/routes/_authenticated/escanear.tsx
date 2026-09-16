@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Camera, CameraOff, Keyboard, Loader2, Plus, Search } from "lucide-react";
 
 import { PageHeader } from "@/modules/layout/PageHeader";
@@ -48,7 +48,9 @@ const TOUCH = "h-14 text-base";
 
 function ScanPage() {
   const { sites, selectedSite, selectSite } = useSelectedSite();
-  const [cameraOn, setCameraOn] = useState(false);
+  // La cámara se enciende al entrar: apuntar y detectar, sin pasos previos.
+  const [cameraOn, setCameraOn] = useState(true);
+
   const [manualOpen, setManualOpen] = useState(false);
   const [manualValue, setManualValue] = useState("");
   const [engine, setEngine] = useState<ScanEngine | null>(null);
@@ -61,8 +63,8 @@ function ScanPage() {
     onSuccess: (data) => setResult(data),
   });
 
-  // Al salir de la pantalla la cámara se apaga y el stream se libera.
-  useEffect(() => () => setCameraOn(false), []);
+  // El escáner libera la cámara al desmontarse; no hace falta apagarla aquí.
+
 
   function handleCode(code: string) {
     setCameraOn(false);
