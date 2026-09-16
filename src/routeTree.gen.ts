@@ -25,6 +25,8 @@ import { Route as AuthenticatedSitiosRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedActivosIndexRouteImport } from './routes/_authenticated/activos/index'
 import { Route as AuthenticatedActivosAssetIdRouteImport } from './routes/_authenticated/activos/$assetId'
 import { Route as AuthenticatedAdminAlertasRouteImport } from './routes/_authenticated/admin/alertas'
+import { Route as ApiReportsInventoryRouteImport } from './routes/api/reports/inventory'
+import { Route as ApiReportsMovementsRouteImport } from './routes/api/reports/movements'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -109,6 +111,16 @@ const AuthenticatedAdminAlertasRoute =
     path: '/admin/alertas',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiReportsInventoryRoute = ApiReportsInventoryRouteImport.update({
+  id: '/api/reports/inventory',
+  path: '/api/reports/inventory',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiReportsMovementsRoute = ApiReportsMovementsRouteImport.update({
+  id: '/api/reports/movements',
+  path: '/api/reports/movements',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -125,6 +137,8 @@ export interface FileRoutesByFullPath {
   '/sitios': typeof AuthenticatedSitiosRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
+  '/api/reports/inventory': typeof ApiReportsInventoryRoute
+  '/api/reports/movements': typeof ApiReportsMovementsRoute
   '/activos/': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRoutesByTo {
@@ -142,6 +156,8 @@ export interface FileRoutesByTo {
   '/sitios': typeof AuthenticatedSitiosRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
+  '/api/reports/inventory': typeof ApiReportsInventoryRoute
+  '/api/reports/movements': typeof ApiReportsMovementsRoute
   '/activos': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRoutesById {
@@ -161,6 +177,8 @@ export interface FileRoutesById {
   '/_authenticated/sitios': typeof AuthenticatedSitiosRoute
   '/_authenticated/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/_authenticated/admin/alertas': typeof AuthenticatedAdminAlertasRoute
+  '/api/reports/inventory': typeof ApiReportsInventoryRoute
+  '/api/reports/movements': typeof ApiReportsMovementsRoute
   '/_authenticated/activos/': typeof AuthenticatedActivosIndexRoute
 }
 export interface FileRouteTypes {
@@ -180,6 +198,8 @@ export interface FileRouteTypes {
     | '/sitios'
     | '/activos/$assetId'
     | '/admin/alertas'
+    | '/api/reports/inventory'
+    | '/api/reports/movements'
     | '/activos/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -197,6 +217,8 @@ export interface FileRouteTypes {
     | '/sitios'
     | '/activos/$assetId'
     | '/admin/alertas'
+    | '/api/reports/inventory'
+    | '/api/reports/movements'
     | '/activos'
   id:
     | '__root__'
@@ -215,6 +237,8 @@ export interface FileRouteTypes {
     | '/_authenticated/sitios'
     | '/_authenticated/activos/$assetId'
     | '/_authenticated/admin/alertas'
+    | '/api/reports/inventory'
+    | '/api/reports/movements'
     | '/_authenticated/activos/'
   fileRoutesById: FileRoutesById
 }
@@ -223,6 +247,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiReportsInventoryRoute: typeof ApiReportsInventoryRoute
+  ApiReportsMovementsRoute: typeof ApiReportsMovementsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -339,6 +365,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAlertasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/reports/inventory': {
+      id: '/api/reports/inventory'
+      path: '/api/reports/inventory'
+      fullPath: '/api/reports/inventory'
+      preLoaderRoute: typeof ApiReportsInventoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/reports/movements': {
+      id: '/api/reports/movements'
+      path: '/api/reports/movements'
+      fullPath: '/api/reports/movements'
+      preLoaderRoute: typeof ApiReportsMovementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -380,6 +420,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiReportsInventoryRoute: ApiReportsInventoryRoute,
+  ApiReportsMovementsRoute: ApiReportsMovementsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
