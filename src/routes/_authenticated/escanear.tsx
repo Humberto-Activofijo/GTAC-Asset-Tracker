@@ -48,7 +48,9 @@ const TOUCH = "h-14 text-base";
 
 function ScanPage() {
   const { sites, selectedSite, selectSite } = useSelectedSite();
-  const [cameraOn, setCameraOn] = useState(false);
+  // La cámara se enciende al entrar: apuntar y detectar, sin pasos previos.
+  const [cameraOn, setCameraOn] = useState(true);
+
   const [manualOpen, setManualOpen] = useState(false);
   const [manualValue, setManualValue] = useState("");
   const [engine, setEngine] = useState<ScanEngine | null>(null);
