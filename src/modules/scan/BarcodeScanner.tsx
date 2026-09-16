@@ -717,18 +717,9 @@ export function BarcodeScanner({
         )}
       </div>
 
+      {/* Uso normal: solo luz (si el teléfono la tiene) y acceso a opciones avanzadas. */}
       {status === "scanning" && (
         <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            variant={smallLabel ? "default" : "outline"}
-            className="h-14 flex-1 text-base sm:flex-none"
-            onClick={() => void toggleSmallLabel()}
-          >
-            <ScanSearch className="mr-2 h-5 w-5" />
-            Etiqueta pequeña
-          </Button>
-
           {caps?.torch && (
             <Button
               type="button"
@@ -744,55 +735,83 @@ export function BarcodeScanner({
               {torchOn ? "Apagar luz" : "Encender luz"}
             </Button>
           )}
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-14 flex-1 text-base sm:flex-none"
+            onClick={() => setOptionsOpen((v) => !v)}
+          >
+            <Settings2 className="mr-2 h-5 w-5" />
+            Opciones de escaneo
+          </Button>
+        </div>
+      )}
 
-          {zoomPresets.map((value, i) => (
-            <Button
-              key={value}
-              type="button"
-              variant={zoom !== null && Math.abs(zoom - value) < 0.05 ? "default" : "outline"}
-              className="h-14 min-w-14 text-base"
-              onClick={() => void applyZoom(value)}
+      {status === "scanning" && optionsOpen && (
+        <div className="space-y-3 rounded-xl border border-border p-3">
+          <Button
+            type="button"
+            variant={smallLabel ? "default" : "outline"}
+            className="h-14 w-full text-base"
+            onClick={() => void toggleSmallLabel()}
+          >
+            <ScanSearch className="mr-2 h-5 w-5" />
+            Etiqueta pequeña
+          </Button>
+
+          {zoomPresets.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {zoomPresets.map((value, i) => (
+                <Button
+                  key={value}
+                  type="button"
+                  variant={zoom !== null && Math.abs(zoom - value) < 0.05 ? "default" : "outline"}
+                  className="h-14 min-w-14 text-base"
+                  onClick={() => void applyZoom(value)}
+                >
+                  {i + 1}×
+                </Button>
+              ))}
+            </div>
+          )}
+
+          {caps?.zoom && (
+            <label className="block text-xs text-muted-foreground">
+              Zoom de cámara
+              <input
+                type="range"
+                className="mt-1 h-10 w-full"
+                min={caps.zoom.min}
+                max={caps.zoom.max}
+                step={caps.zoom.step}
+                value={zoom ?? caps.zoom.min}
+                onChange={(e) => void applyZoom(Number(e.target.value))}
+              />
+            </label>
+          )}
+
+          {/* Diagnóstico temporal: solo visible en desarrollo. */}
+          {import.meta.env.DEV && diag && (
+            <div
+              data-testid="scan-diagnostics"
+              className="rounded-lg border border-dashed border-border p-3 font-mono text-xs text-muted-foreground"
             >
-              {i + 1}×
-            </Button>
-          ))}
+              <p>detector nativo activo: {diag.native ? "sí" : "no"}</p>
+              <p>QR nativo soportado: {diag.nativeQr ? "sí" : "no"}</p>
+              <p>ruta QR activa: {diag.qrRoute}</p>
+              <p>QR ZXing: {diag.zxingHit ? "detectado" : "no"}</p>
+              <p>QR fallback: {diag.fallbackReady ? "jsQR activo" : "no disponible"}</p>
+              <p>frame analizado: {diag.frame}</p>
+              <p>recorte central: {diag.crop}</p>
+              <p>resolución del stream: {diag.resolution}</p>
+              <p>modo de lectura QR: {diag.mode}</p>
+              <p>frecuencias: {diag.rates}</p>
+              <p>procesamiento: hilo principal</p>
+            </div>
+          )}
         </div>
       )}
 
-      {status === "scanning" && caps?.zoom && (
-        <label className="block text-xs text-muted-foreground">
-          Zoom de cámara
-          <input
-            type="range"
-            className="mt-1 h-10 w-full"
-            min={caps.zoom.min}
-            max={caps.zoom.max}
-            step={caps.zoom.step}
-            value={zoom ?? caps.zoom.min}
-            onChange={(e) => void applyZoom(Number(e.target.value))}
-          />
-        </label>
-      )}
-
-      {/* Diagnóstico temporal: solo visible en desarrollo. */}
-      {import.meta.env.DEV && diag && (
-        <div
-          data-testid="scan-diagnostics"
-          className="rounded-lg border border-dashed border-border p-3 font-mono text-xs text-muted-foreground"
-        >
-          <p>detector nativo activo: {diag.native ? "sí" : "no"}</p>
-          <p>QR nativo soportado: {diag.nativeQr ? "sí" : "no"}</p>
-          <p>ruta QR activa: {diag.qrRoute}</p>
-          <p>QR ZXing: {diag.zxingHit ? "detectado" : "no"}</p>
-          <p>QR fallback: {diag.fallbackReady ? "jsQR activo" : "no disponible"}</p>
-          <p>frame analizado: {diag.frame}</p>
-          <p>recorte central: {diag.crop}</p>
-          <p>resolución del stream: {diag.resolution}</p>
-          <p>modo de lectura QR: {diag.mode}</p>
-          <p>frecuencias: {diag.rates}</p>
-          <p>procesamiento: hilo principal</p>
-        </div>
-      )}
 
       {status === "error" && message && (
         <p role="alert" className="text-sm text-destructive">
