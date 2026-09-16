@@ -1,6 +1,18 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
+import {
+  retryAlertEmail as retryAlertEmailFn,
+  runTransitCheckWithEmail,
+} from "@/lib/alerts.functions";
+
+export type AlertEmailStatus = "PENDING" | "SENT" | "FAILED";
+
+export const ALERT_EMAIL_STATUS_LABEL: Record<AlertEmailStatus, string> = {
+  PENDING: "Correo pendiente",
+  SENT: "Correo enviado",
+  FAILED: "Correo fallido",
+};
 
 export type AlertType = "TRANSITO_48H" | "OMISION_PROTOCOLO";
 export type AlertStatus = "OPEN" | "RESOLVED";
