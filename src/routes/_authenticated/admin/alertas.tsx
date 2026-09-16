@@ -98,6 +98,16 @@ function AlertCard({ alert, onResolve }: { alert: AlertRow; onResolve: (a: Alert
             <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
               {ALERT_STATUS_LABEL[alert.status]}
             </span>
+            <span
+              className={cn(
+                "rounded-full border px-2 py-0.5 text-xs",
+                alert.email_status === "SENT"
+                  ? "border-border text-muted-foreground"
+                  : "border-destructive/40 text-destructive",
+              )}
+            >
+              {ALERT_EMAIL_STATUS_LABEL[alert.email_status]}
+            </span>
             <Link
               to="/activos/$assetId"
               params={{ assetId: alert.asset_id }}
