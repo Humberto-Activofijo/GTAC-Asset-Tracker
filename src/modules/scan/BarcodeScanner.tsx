@@ -116,6 +116,8 @@ export function BarcodeScanner({
   const [torchOn, setTorchOn] = useState(false);
   const [zoom, setZoom] = useState<number | null>(null);
   const [smallLabel, setSmallLabel] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+
   const smallLabelRef = useRef(false);
   smallLabelRef.current = smallLabel;
   const [diag, setDiag] = useState<{
