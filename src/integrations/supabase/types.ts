@@ -462,6 +462,60 @@ export type Database = {
         Args: { _from?: string; _to?: string }
         Returns: Json
       }
+      export_inventory_page: {
+        Args: {
+          _after_id?: string
+          _asset_number?: string
+          _condition?: string
+          _limit?: number
+          _model?: string
+          _serial_number?: string
+          _site_id?: string
+          _status?: string
+        }
+        Returns: {
+          asset_number: string
+          category: string
+          condition: string
+          created_at: string
+          id: string
+          last_movement_at: string
+          model: string
+          serial_number: string
+          site_name: string
+          status: string
+        }[]
+      }
+      export_movements_page: {
+        Args: {
+          _action?: string
+          _after_occurred_at?: string
+          _after_row_id?: string
+          _asset_number?: string
+          _condition?: string
+          _from?: string
+          _limit?: number
+          _omission?: boolean
+          _site_id?: string
+          _to?: string
+          _user_id?: string
+        }
+        Returns: {
+          action: string
+          asset_number: string
+          condition: string
+          latitude: number
+          longitude: number
+          model: string
+          notes: string
+          occurred_at: string
+          protocol_omission: boolean
+          row_id: string
+          serial_number: string
+          site_name: string
+          user_email: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
