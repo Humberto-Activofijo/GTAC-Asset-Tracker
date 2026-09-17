@@ -52,9 +52,6 @@ export default defineTool({
     }
 
     const text = JSON.stringify({ asset, movements: recent });
-    return {
-      content: [{ type: "text", text }],
-      structuredContent: JSON.parse(text) as Record<string, unknown>,
-    };
+    return { content: [{ type: "text", text }] };
   },
 });
