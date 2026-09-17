@@ -21,9 +21,17 @@ export const Route = createFileRoute("/reset-password")({
   component: ResetPasswordPage,
 });
 
+function readTokenFromUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const query = new URLSearchParams(window.location.search);
+  return hash.get("access_token") ?? query.get("access_token");
+}
+
 function ResetPasswordPage() {
   const navigate = useNavigate();
   const [ready, setReady] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -31,12 +39,25 @@ function ResetPasswordPage() {
 
   useEffect(() => {
     let cancelled = false;
+    const urlToken = readTokenFromUrl();
+    if (urlToken) {
+      setToken(urlToken);
+      setReady(true);
+    }
     supabase.auth.getSession().then(({ data }) => {
       if (cancelled) return;
-      setReady(Boolean(data.session));
+      if (data.session) {
+        setToken((current) => current ?? data.session!.access_token);
+        setReady(true);
+      }
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || session) setReady(true);
+      if (session) {
+        setToken((current) => current ?? session.access_token);
+        setReady(true);
+      } else if (event === "PASSWORD_RECOVERY") {
+        setReady(true);
+      }
     });
     return () => {
       cancelled = true;
@@ -55,23 +76,35 @@ function ResetPasswordPage() {
       setError("Las contraseñas no coinciden.");
       return;
     }
+    if (!token) {
+      setError("El enlace expiró o ya fue usado. Solicita uno nuevo desde la pantalla de acceso.");
+      return;
+    }
     setLoading(true);
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ password });
-      if (updateError) {
-        const code = (updateError as { code?: string }).code;
-        if (code === "same_password") {
-          setError("La nueva contraseña debe ser distinta a la anterior.");
-        } else if (code === "weak_password") {
-          setError("La contraseña es demasiado débil o apareció en filtraciones conocidas. Usa otra.");
-        } else if (/expired|invalid/i.test(updateError.message)) {
-          setError("El enlace expiró o ya fue usado. Solicita uno nuevo desde la pantalla de acceso.");
-        } else {
-          setError(updateError.message);
-        }
+      // El cambio se hace en el servidor de la app: algunas redes corporativas
+      // bloquean la conexión directa del navegador al servicio de autenticación.
+      const response = await fetch("/api/public/password-update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken: token, password }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { ok?: boolean; message?: string }
+        | null;
+
+      if (!response.ok || !payload?.ok) {
+        setError(payload?.message ?? "No fue posible guardar la contraseña. Intenta más tarde.");
         return;
       }
-      navigate({ to: "/inicio", replace: true });
+
+      // Intentamos iniciar sesión sin interrumpir si la red bloquea la llamada.
+      await supabase.auth.refreshSession().catch(() => undefined);
+      navigate({ to: "/auth", replace: true });
+    } catch {
+      setError(
+        "No se pudo contactar al servidor. Revisa tu conexión, VPN o bloqueador y vuelve a intentar.",
+      );
     } finally {
       setLoading(false);
     }
