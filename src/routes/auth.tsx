@@ -26,13 +26,50 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+const NETWORK_MESSAGE =
+  "No se pudo contactar al servidor. Revisa tu conexión, VPN o bloqueador de anuncios y vuelve a intentar.";
+
+type AuthFailure = { message: string; detail: string | null; retryable: boolean };
+
+/** Traduce un error de autenticación a un mensaje claro, distinguiendo fallos de red. */
+function describeAuthError(error: unknown, fallback: string): AuthFailure {
+  const raw = error as { message?: string; code?: string; status?: number; name?: string } | null;
+  const message = raw?.message ?? "";
+  const code = raw?.code ?? "";
+  const isNetwork =
+    raw?.name === "AuthRetryableFetchError" ||
+    raw?.status === 0 ||
+    /failed to fetch|network|load failed|fetch failed/i.test(message);
+
+  const stamp = new Date().toLocaleTimeString("es-MX", { timeZone: "America/Mexico_City" });
+
+  if (isNetwork || (typeof navigator !== "undefined" && navigator.onLine === false)) {
+    return {
+      message: NETWORK_MESSAGE,
+      detail: `${stamp} · ${message || "sin respuesta del servidor"}`,
+      retryable: true,
+    };
+  }
+  if (code === "over_email_send_rate_limit" || raw?.status === 429) {
+    return {
+      message: "Demasiados intentos. Espera unos minutos antes de volver a intentar.",
+      detail: null,
+      retryable: false,
+    };
+  }
+  if (code === "invalid_credentials" || raw?.status === 400) {
+    return { message: fallback, detail: null, retryable: false };
+  }
+  return { message: fallback, detail: message ? `${stamp} · ${message}` : null, retryable: false };
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "recover">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<AuthFailure | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
   async function handleLogin(event: React.FormEvent) {
@@ -41,12 +78,19 @@ function AuthPage() {
     setInfo(null);
     setLoading(true);
     try {
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email: email.trim().toLowerCase(),
-        password,
-      });
+      let result: Awaited<ReturnType<typeof supabase.auth.signInWithPassword>>;
+      try {
+        result = await supabase.auth.signInWithPassword({
+          email: email.trim().toLowerCase(),
+          password,
+        });
+      } catch (thrown) {
+        setError(describeAuthError(thrown, "No fue posible iniciar sesión."));
+        return;
+      }
+      const { data, error: signInError } = result;
       if (signInError || !data.user) {
-        setError("Correo o contraseña incorrectos.");
+        setError(describeAuthError(signInError, "Correo o contraseña incorrectos."));
         return;
       }
 
@@ -59,12 +103,20 @@ function AuthPage() {
 
       if (profileError || !profile) {
         await supabase.auth.signOut();
-        setError("Tu cuenta no tiene un perfil válido. Contacta al administrador.");
+        setError({
+          message: "Tu cuenta no tiene un perfil válido. Contacta al administrador.",
+          detail: null,
+          retryable: false,
+        });
         return;
       }
       if (!profile.active) {
         await supabase.auth.signOut();
-        setError("Tu cuenta está desactivada. Contacta al administrador.");
+        setError({
+          message: "Tu cuenta está desactivada. Contacta al administrador.",
+          detail: null,
+          retryable: false,
+        });
         return;
       }
 
@@ -80,12 +132,23 @@ function AuthPage() {
     setInfo(null);
     setLoading(true);
     try {
-      const { error: recoverError } = await supabase.auth.resetPasswordForEmail(
-        email.trim().toLowerCase(),
-        { redirectTo: `${window.location.origin}/reset-password` },
-      );
+      let recoverError: unknown = null;
+      try {
+        const result = await supabase.auth.resetPasswordForEmail(
+          email.trim().toLowerCase(),
+          { redirectTo: `${window.location.origin}/reset-password` },
+        );
+        recoverError = result.error;
+      } catch (thrown) {
+        recoverError = thrown;
+      }
       if (recoverError) {
-        setError("No fue posible enviar el correo de recuperación. Intenta más tarde.");
+        setError(
+          describeAuthError(
+            recoverError,
+            "No fue posible enviar el correo de recuperación. Intenta más tarde.",
+          ),
+        );
         return;
       }
       setInfo("Si el correo pertenece a una cuenta registrada, recibirás un enlace para restablecer tu contraseña.");
@@ -138,7 +201,21 @@ function AuthPage() {
           )}
 
           {error && (
-            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+            <div className="space-y-1 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p>{error.message}</p>
+              {error.detail && (
+                <p className="text-xs text-destructive/80">Detalle técnico: {error.detail}</p>
+              )}
+              {error.retryable && (
+                <button
+                  type="submit"
+                  className="text-xs font-medium underline underline-offset-4"
+                  disabled={loading}
+                >
+                  Reintentar
+                </button>
+              )}
+            </div>
           )}
           {info && (
             <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">{info}</p>
