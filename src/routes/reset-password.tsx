@@ -59,7 +59,16 @@ function ResetPasswordPage() {
     try {
       const { error: updateError } = await supabase.auth.updateUser({ password });
       if (updateError) {
-        setError("No fue posible actualizar la contraseña. Solicita un enlace nuevo.");
+        const code = (updateError as { code?: string }).code;
+        if (code === "same_password") {
+          setError("La nueva contraseña debe ser distinta a la anterior.");
+        } else if (code === "weak_password") {
+          setError("La contraseña es demasiado débil o apareció en filtraciones conocidas. Usa otra.");
+        } else if (/expired|invalid/i.test(updateError.message)) {
+          setError("El enlace expiró o ya fue usado. Solicita uno nuevo desde la pantalla de acceso.");
+        } else {
+          setError(updateError.message);
+        }
         return;
       }
       navigate({ to: "/inicio", replace: true });
