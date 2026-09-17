@@ -51,7 +51,7 @@ export function GtacBrand({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <div className="leading-tight">
           <p className="text-base font-semibold text-foreground">GTAC CAT</p>
-          <p className="text-xs text-muted-foreground">Trazabilidad de Activos</p>
+          <p className="text-xs text-muted-foreground">Control de Activos y Trazabilidad</p>
         </div>
       )}
     </div>
