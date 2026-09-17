@@ -73,8 +73,14 @@ por cursor en bloques de 1,000 filas. Exportación exclusiva de administradores,
 verificada en el servidor. Fechas almacenadas en UTC y mostradas en
 America/Mexico_City.
 
+## En curso — Alertas por Outlook corporativo
+
+- [ ] Conectar el buzón de Outlook (autorización del usuario) — pendiente de completar la autorización
+- [ ] Adaptar envío de alertas en el servidor a la conexión de Outlook
+- [ ] Configurar destinatarios y enviar correo de prueba
+- [ ] Verificar estados de correo en Alertas y actualizar docs/CORREO_ALERTAS.md
+
 ## Pendiente
 
-Credenciales Microsoft 365 para activar el envío real, tarea programada,
-notificaciones push, reapertura de alertas, edición de activos desde la
-interfaz, carga masiva y sincronización offline.
+Tarea programada, notificaciones push, reapertura de alertas, edición de
+activos desde la interfaz, carga masiva y sincronización offline.
