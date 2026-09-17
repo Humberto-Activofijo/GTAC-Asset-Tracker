@@ -37,7 +37,7 @@ export default defineTool({
       };
     }
 
-    let recent: unknown[] = [];
+    let recent: Record<string, unknown>[] = [];
     if ((movements ?? 10) > 0) {
       const { data, error: movError } = await supabase
         .from("movements")

@@ -9,7 +9,10 @@ export default defineTool({
   description:
     "Lista las alertas de tránsito mayor a 48 horas y de omisión de protocolo. Solo los administradores tienen acceso a este listado.",
   inputSchema: {
-    status: z.enum(["ABIERTA", "RESUELTA"]).optional().describe("Estado de la alerta."),
+    status: z
+      .enum(["OPEN", "RESOLVED"])
+      .optional()
+      .describe("Estado de la alerta: OPEN (abierta) o RESOLVED (resuelta)."),
     type: z
       .enum(["TRANSITO_48H", "OMISION_PROTOCOLO"])
       .optional()
