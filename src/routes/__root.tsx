@@ -15,6 +15,9 @@ import { installAuthNetworkFallback } from "../lib/auth-network-fallback";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "@/components/ui/sonner";
 
+// Reintento automático vía el servidor cuando la red bloquea el dominio de autenticación.
+installAuthNetworkFallback();
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
