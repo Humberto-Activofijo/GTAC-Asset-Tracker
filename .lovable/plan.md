@@ -1,92 +1,52 @@
 # Envío de alertas por Outlook corporativo de GTAC
 
-El envío de correo ya está programado en la aplicación. Falta únicamente que TI
-entregue los datos de la cuenta corporativa y que los guardemos de forma segura
-en el servidor. Abajo está la lista exacta para pedirla a TI.
+Nueva dirección: en lugar de pedirle a TI un registro de aplicación, conectamos
+el buzón de Outlook corporativo tuyo directamente y las alertas salen desde ahí.
+Solo necesitas autorizar el acceso una vez; no se toca DNS, ni SMTP, ni servidores.
 
-## Sobre tu pregunta: ¿un correo "del sistema" sin pedir nada a TI?
+## Opciones evaluadas
 
-No existe un remitente genérico o gratuito disponible: cualquier correo que la
-aplicación envíe debe salir de un dominio propio y verificado. Las dos rutas
-posibles son:
-
-| Ruta | Qué se pide a TI | Riesgo |
+| Ruta | Quién interviene | Observaciones |
 | --- | --- | --- |
-| **Outlook corporativo (recomendada, este plan)** | Registro de aplicación en Entra con `Mail.Send`. No se toca DNS ni servidores de correo. | Ninguno relevante; los correos salen del dominio gtac.com.mx con reputación corporativa. |
-| **Plataforma de correo externa con subdominio** (p. ej. `alertas.gtac.com.mx` delegado al servicio de envío) | Que TI agregue registros DNS (delegación de subdominio) en el proveedor que administra gtac.com.mx. | Configurar DNS una vez; los buzones @gtac.com.mx podrían marcar como spam un remitente que no es un buzón corporativo real. |
+| **Conectar tu Outlook (elegida)** | Solo tú: autorizas el acceso con tu cuenta Microsoft una vez. | Los correos salen de tu buzón corporativo (reputación de gtac.com.mx), sin solicitud a TI. |
+| Registro de aplicación en Entra por TI | TI crea la app y entrega credenciales. | Plan B si más adelante quieres un buzón dedicado tipo `alertas@gtac.com.mx`. |
+| Plataforma de correo externa con subdominio | TI configura DNS. | Descartada: pide más a TI y riesgo de spam en buzones corporativos. |
 
-En ambas rutas interviene TI; la de Outlook corporativo es la que menos pide
-(no toca DNS ni requiere hosting de correo) y la que mejor llega a buzones
-@gtac.com.mx, porque los correos salen exactamente igual que un correo enviado
-por ese buzón. Por eso se mantiene como plan.
+No existe un remitente "del sistema" genérico o gratuito: todo correo debe salir
+de un dominio propio verificado. Con tu Outlook conectado ya se cumple, porque
+el remitente es tu buzón @gtac.com.mx.
 
+## Puntos a tener en cuenta con tu Outlook conectado
 
+- El remitente será **tu buzón** (hcruz@gtac.com.mx), no un buzón dedicado. Si
+  luego prefieres `alertas@gtac.com.mx`, TI solo tendría que habilitar ese
+  buzón compartido y reconectamos con esa cuenta.
+- Los envíos pueden quedar registrados en tus Elementos enviados.
+- Si Microsoft exige aprobación del administrador para el permiso de envío en
+  su tenant, TI solo tendría que aprobar esa autorización una vez; no crea
+  nada ni entrega credenciales.
+- La conexión se administra en Lovable; si en el futuro se revoca, bastaría
+  reconectarla (la app avisará con estado *Correo fallido*).
 
-## Lo que hay que pedir a TI
+## Qué haré al aprobar el plan
 
-**1. Registro de aplicación en Microsoft Entra (Azure AD)**
-
-Pedir a TI que cree un registro de aplicación (por ejemplo "GTAC CAT - Alertas")
-y entregue estos tres datos:
-
-| Dato | Cómo lo nombra TI |
-| --- | --- |
-| ID de directorio (tenant) | Directory (tenant) ID |
-| ID de aplicación | Application (client) ID |
-| Secreto de cliente | Client secret (valor, no el ID) — anotar fecha de vencimiento |
-
-**2. Permiso**
-
-La aplicación necesita el permiso **de aplicación** `Mail.Send` de Microsoft Graph,
-con **consentimiento del administrador** otorgado. No sirve el permiso "delegado".
-
-Recomendado: pedir a TI que limite ese permiso al buzón remitente mediante una
-política de acceso a aplicaciones (Application Access Policy), para que la
-aplicación no pueda enviar desde cualquier buzón de la organización.
-
-**3. Buzón remitente**
-
-Una cuenta o buzón compartido con licencia de Exchange Online desde el cual
-saldrán las alertas, por ejemplo `alertas@gtac.com.mx`.
-
-**4. Destinatarios**
-
-La lista de correos que deben recibir las alertas (uno o varios, separados por
-comas), por ejemplo el correo del área de operaciones.
-
-**5. Red / salida a internet**
-
-Confirmar que TI no bloquea la salida hacia:
-- `login.microsoftonline.com`
-- `graph.microsoft.com`
-
-## Dominios y direcciones involucradas
-
-- `login.microsoftonline.com` — autenticación de la aplicación.
-- `graph.microsoft.com` — envío del correo.
-- `gtac.com.mx` — dominio del buzón remitente y de los destinatarios.
-
-No se requiere abrir puertos ni configurar SMTP, ni tocar los registros DNS de
-`gtac.com.mx`: el envío usa la API de Microsoft 365 con la propia cuenta
-corporativa, así que los correos salen con la reputación del dominio de GTAC.
-
-## Qué haré cuando TI entregue los datos
-
-1. Guardar los cinco valores como secretos del servidor (nunca en el frontend):
-   `MS_GRAPH_TENANT_ID`, `MS_GRAPH_CLIENT_ID`, `MS_GRAPH_CLIENT_SECRET`,
-   `ALERT_EMAIL_SENDER`, `ALERT_EMAIL_RECIPIENTS`.
-2. Enviar un correo de prueba real desde el servidor y confirmar que llega al
-   buzón destino.
-3. Verificar en **Alertas** que una alerta pasa de *Correo pendiente* a
-   *Correo enviado*, y que **Reintentar notificación** funciona.
-4. Dejar en `docs/CORREO_ALERTAS.md` la lista anterior como formato de solicitud
-   a TI, con la nota de renovar el secreto antes de su vencimiento.
+1. Abrir la tarjeta de conexión de Outlook para que inicies sesión con tu
+   cuenta Microsoft corporativa y autorices el envío de correo.
+2. Adaptar el envío de alertas en el servidor para usar esa conexión
+   (endpoint de envío de Microsoft Graph ya existente, ahora autenticado con
+   la conexión). Las credenciales permanecen solo en el servidor; nada toca el
+   frontend ni el escáner, movimientos, alertas ni reglas de negocio.
+3. Pedirte la lista de destinatarios (por ejemplo, tu correo y el de
+   operaciones) y dejarla como configuración del servidor.
+4. Enviar un correo de prueba real y confirmar que llega.
+5. Verificar en **Alertas** que una alerta pasa de *Correo pendiente* a
+   *Correo enviado* y que **Reintentar notificación** funciona.
+6. Actualizar `docs/CORREO_ALERTAS.md` con la nueva forma de conexión.
 
 ## Notas
 
-- Mientras falten los datos, nada se rompe: las alertas se siguen creando y se
-  quedan en estado *Correo pendiente*.
-- El secreto de cliente caduca (normalmente entre 6 y 24 meses). Conviene pedir
-  a TI la fecha de vencimiento y agendar su renovación.
+- Mientras la conexión no exista, nada se rompe: las alertas se siguen creando
+  y quedan en estado *Correo pendiente*.
 - No se envían recordatorios automáticos: la revisión de tránsito +48 h sigue
   siendo manual desde el botón de administrador.
+- Sin cambios de diseño, sin migraciones de base de datos.
