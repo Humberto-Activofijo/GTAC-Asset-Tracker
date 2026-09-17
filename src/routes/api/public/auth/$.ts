@@ -48,7 +48,10 @@ async function proxy({ request, params }: { request: Request; params: { _splat?:
     responseHeaders.set(key, value);
   });
 
-  return new Response(await upstream.arrayBuffer(), {
+  // 204/205/304 no admiten cuerpo en la respuesta.
+  const emptyBody = upstream.status === 204 || upstream.status === 205 || upstream.status === 304;
+
+  return new Response(emptyBody ? null : await upstream.arrayBuffer(), {
     status: upstream.status,
     statusText: upstream.statusText,
     headers: responseHeaders,
