@@ -128,6 +128,11 @@ function AuthPage() {
         return;
       }
 
+      const target = next ? safeNext(next) : null;
+      if (target) {
+        window.location.replace(target);
+        return;
+      }
       navigate({ to: "/inicio", replace: true });
     } finally {
       setLoading(false);
