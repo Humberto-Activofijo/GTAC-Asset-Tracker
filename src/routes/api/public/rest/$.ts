@@ -66,6 +66,7 @@ export const Route = createFileRoute("/api/public/rest/$")({
       POST: proxy,
       PUT: proxy,
       DELETE: proxy,
+      PATCH: proxy,
       OPTIONS: async () => new Response(null, { status: 204 }),
     },
   },
