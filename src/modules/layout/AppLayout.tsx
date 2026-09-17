@@ -18,7 +18,7 @@ import {
 import { useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
-import gtacLogo from "@/assets/gtac-logo.png.asset.json";
+import gtacSymbol from "@/assets/gtac-symbol.png.asset.json";
 import type { CurrentUser } from "@/modules/auth/queries";
 import { cn } from "@/lib/utils";
 import {
@@ -47,9 +47,9 @@ export function GtacBrand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-3">
       <img
-        src={gtacLogo.url}
+        src={gtacSymbol.url}
         alt="GTAC"
-        className="h-12 w-auto shrink-0 object-contain"
+        className="h-10 w-auto shrink-0 object-contain"
       />
       {!compact && (
         <div className="leading-tight">
