@@ -31,6 +31,7 @@ import { Route as ApiPublicPasswordUpdateRouteImport } from './routes/api/public
 import { Route as ApiReportsInventoryRouteImport } from './routes/api/reports/inventory'
 import { Route as ApiReportsMovementsRouteImport } from './routes/api/reports/movements'
 import { Route as ApiPublicAuthSplatRouteImport } from './routes/api/public/auth/$'
+import { Route as ApiPublicRestSplatRouteImport } from './routes/api/public/rest/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -146,6 +147,11 @@ const ApiPublicAuthSplatRoute = ApiPublicAuthSplatRouteImport.update({
   path: '/api/public/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRestSplatRoute = ApiPublicRestSplatRouteImport.update({
+  id: '/api/public/rest/$',
+  path: '/api/public/rest/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/api/reports/movements': typeof ApiReportsMovementsRoute
   '/activos/': typeof AuthenticatedActivosIndexRoute
   '/api/public/auth/$': typeof ApiPublicAuthSplatRoute
+  '/api/public/rest/$': typeof ApiPublicRestSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/api/reports/movements': typeof ApiReportsMovementsRoute
   '/activos': typeof AuthenticatedActivosIndexRoute
   '/api/public/auth/$': typeof ApiPublicAuthSplatRoute
+  '/api/public/rest/$': typeof ApiPublicRestSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -217,6 +225,7 @@ export interface FileRoutesById {
   '/api/reports/movements': typeof ApiReportsMovementsRoute
   '/_authenticated/activos/': typeof AuthenticatedActivosIndexRoute
   '/api/public/auth/$': typeof ApiPublicAuthSplatRoute
+  '/api/public/rest/$': typeof ApiPublicRestSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/api/reports/movements'
     | '/activos/'
     | '/api/public/auth/$'
+    | '/api/public/rest/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/api/reports/movements'
     | '/activos'
     | '/api/public/auth/$'
+    | '/api/public/rest/$'
   id:
     | '__root__'
     | '/'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/api/reports/movements'
     | '/_authenticated/activos/'
     | '/api/public/auth/$'
+    | '/api/public/rest/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -301,6 +313,7 @@ export interface RootRouteChildren {
   ApiReportsInventoryRoute: typeof ApiReportsInventoryRoute
   ApiReportsMovementsRoute: typeof ApiReportsMovementsRoute
   ApiPublicAuthSplatRoute: typeof ApiPublicAuthSplatRoute
+  ApiPublicRestSplatRoute: typeof ApiPublicRestSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -459,6 +472,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/rest/$': {
+      id: '/api/public/rest/$'
+      path: '/api/public/rest/$'
+      fullPath: '/api/public/rest/$'
+      preLoaderRoute: typeof ApiPublicRestSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -507,6 +527,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiReportsInventoryRoute: ApiReportsInventoryRoute,
   ApiReportsMovementsRoute: ApiReportsMovementsRoute,
   ApiPublicAuthSplatRoute: ApiPublicAuthSplatRoute,
+  ApiPublicRestSplatRoute: ApiPublicRestSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
