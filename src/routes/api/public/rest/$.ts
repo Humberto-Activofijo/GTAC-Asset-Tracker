@@ -1,6 +1,7 @@
-// Puente de autenticación: reenvía las peticiones de inicio de sesión / sesión
-// al servicio de autenticación desde el servidor de la app. Se usa solo cuando la
-// red del usuario bloquea la conexión directa del navegador a ese servicio.
+// Puente de datos: reenvía las consultas a la base desde el servidor de la app.
+// Se usa solo cuando la red del usuario bloquea la conexión directa del navegador.
+// El encabezado Authorization del usuario se reenvía tal cual, por lo que las
+// políticas de seguridad (RLS) se siguen aplicando igual que en la conexión directa.
 import { createFileRoute } from "@tanstack/react-router";
 
 const HOP_BY_HOP = new Set([
