@@ -85,3 +85,7 @@ America/Mexico_City.
 
 Tarea programada, notificaciones push, reapertura de alertas, edición de
 activos desde la interfaz, carga masiva y sincronización offline.
+
+## Fase 7 — completada: integraciones de agentes (MCP)
+- [x] Servidor MCP en /mcp con inicio de sesión (OAuth) y pantalla de autorización
+- [x] Herramientas de consulta: sitios, activos, detalle de activo, movimientos y alertas
