@@ -18,6 +18,7 @@ import {
 import { useState } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
+import gtacLogo from "@/assets/gtac-logo.png.asset.json";
 import type { CurrentUser } from "@/modules/auth/queries";
 import { cn } from "@/lib/utils";
 import {
