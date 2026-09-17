@@ -51,10 +51,10 @@ export default defineTool({
       recent = data ?? [];
     }
 
-    const payload = { asset, movements: recent };
+    const text = JSON.stringify({ asset, movements: recent });
     return {
-      content: [{ type: "text", text: JSON.stringify(payload) }],
-      structuredContent: payload,
+      content: [{ type: "text", text }],
+      structuredContent: JSON.parse(text) as Record<string, unknown>,
     };
   },
 });
