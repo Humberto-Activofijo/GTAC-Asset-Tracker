@@ -132,12 +132,23 @@ function AuthPage() {
     setInfo(null);
     setLoading(true);
     try {
-      const { error: recoverError } = await supabase.auth.resetPasswordForEmail(
-        email.trim().toLowerCase(),
-        { redirectTo: `${window.location.origin}/reset-password` },
-      );
+      let recoverError: unknown = null;
+      try {
+        const result = await supabase.auth.resetPasswordForEmail(
+          email.trim().toLowerCase(),
+          { redirectTo: `${window.location.origin}/reset-password` },
+        );
+        recoverError = result.error;
+      } catch (thrown) {
+        recoverError = thrown;
+      }
       if (recoverError) {
-        setError("No fue posible enviar el correo de recuperación. Intenta más tarde.");
+        setError(
+          describeAuthError(
+            recoverError,
+            "No fue posible enviar el correo de recuperación. Intenta más tarde.",
+          ),
+        );
         return;
       }
       setInfo("Si el correo pertenece a una cuenta registrada, recibirás un enlace para restablecer tu contraseña.");
