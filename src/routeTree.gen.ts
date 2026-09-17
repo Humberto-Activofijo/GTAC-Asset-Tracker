@@ -22,6 +22,7 @@ import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedMovimientosRouteImport } from './routes/_authenticated/movimientos'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedSitiosRouteImport } from './routes/_authenticated/sitios'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedActivosIndexRouteImport } from './routes/_authenticated/activos/index'
 import { Route as AuthenticatedActivosAssetIdRouteImport } from './routes/_authenticated/activos/$assetId'
 import { Route as AuthenticatedAdminAlertasRouteImport } from './routes/_authenticated/admin/alertas'
@@ -98,6 +99,11 @@ const AuthenticatedSitiosRoute = AuthenticatedSitiosRouteImport.update({
   path: '/sitios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedActivosIndexRoute =
   AuthenticatedActivosIndexRouteImport.update({
     id: '/activos/',
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/movimientos': typeof AuthenticatedMovimientosRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
@@ -190,6 +197,7 @@ export interface FileRoutesByTo {
   '/movimientos': typeof AuthenticatedMovimientosRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
@@ -216,6 +224,7 @@ export interface FileRoutesById {
   '/_authenticated/movimientos': typeof AuthenticatedMovimientosRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/sitios': typeof AuthenticatedSitiosRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/_authenticated/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/_authenticated/admin/reportes': typeof AuthenticatedAdminReportesRoute
@@ -242,6 +251,7 @@ export interface FileRouteTypes {
     | '/movimientos'
     | '/reportes'
     | '/sitios'
+    | '/.lovable/oauth/consent'
     | '/activos/$assetId'
     | '/admin/alertas'
     | '/admin/reportes'
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/movimientos'
     | '/reportes'
     | '/sitios'
+    | '/.lovable/oauth/consent'
     | '/activos/$assetId'
     | '/admin/alertas'
     | '/admin/reportes'
@@ -291,6 +302,7 @@ export interface FileRouteTypes {
     | '/_authenticated/movimientos'
     | '/_authenticated/reportes'
     | '/_authenticated/sitios'
+    | '/.lovable/oauth/consent'
     | '/_authenticated/activos/$assetId'
     | '/_authenticated/admin/alertas'
     | '/_authenticated/admin/reportes'
@@ -308,6 +320,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiPublicPasswordResetRoute: typeof ApiPublicPasswordResetRoute
   ApiPublicPasswordUpdateRoute: typeof ApiPublicPasswordUpdateRoute
   ApiReportsInventoryRoute: typeof ApiReportsInventoryRoute
@@ -408,6 +421,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/sitios'
       preLoaderRoute: typeof AuthenticatedSitiosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/activos/': {
       id: '/_authenticated/activos/'
@@ -522,6 +542,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiPublicPasswordResetRoute: ApiPublicPasswordResetRoute,
   ApiPublicPasswordUpdateRoute: ApiPublicPasswordUpdateRoute,
   ApiReportsInventoryRoute: ApiReportsInventoryRoute,
