@@ -36,7 +36,6 @@ function ResetPasswordPage() {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -99,7 +98,6 @@ function ResetPasswordPage() {
         return;
       }
 
-      setDone(true);
       // Intentamos iniciar sesión sin interrumpir si la red bloquea la llamada.
       await supabase.auth.refreshSession().catch(() => undefined);
       navigate({ to: "/auth", replace: true });
