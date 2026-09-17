@@ -201,7 +201,21 @@ function AuthPage() {
           )}
 
           {error && (
-            <p className="rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+            <div className="space-y-1 rounded-lg bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              <p>{error.message}</p>
+              {error.detail && (
+                <p className="text-xs text-destructive/80">Detalle técnico: {error.detail}</p>
+              )}
+              {error.retryable && (
+                <button
+                  type="submit"
+                  className="text-xs font-medium underline underline-offset-4"
+                  disabled={loading}
+                >
+                  Reintentar
+                </button>
+              )}
+            </div>
           )}
           {info && (
             <p className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">{info}</p>
