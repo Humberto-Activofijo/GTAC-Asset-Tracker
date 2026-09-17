@@ -9,9 +9,8 @@ import { Label } from "@/components/ui/label";
 import { GtacBrand } from "@/modules/layout/AppLayout";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    next: typeof s['next'] === "string" ? s['next'] : "",
-  }),
+  validateSearch: (s: Record<string, unknown>): { next?: string } =>
+    typeof s['next'] === "string" && s['next'] ? { next: s['next'] } : {},
   head: () => ({
     meta: [
       { title: "Acceso — GTAC Trazabilidad de Activos" },
