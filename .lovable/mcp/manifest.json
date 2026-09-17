@@ -1,0 +1,231 @@
+{
+  "version": 1,
+  "sdk_version": "2.2.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://ndyeytmeaukjmafswvnf.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "gtac-asset-tracker",
+      "version": "0.1.0",
+      "title": "GTAC: Asset Tracker"
+    },
+    "tools": [
+      {
+        "name": "list_sites",
+        "title": "Listar sitios",
+        "description": "Lista los sitios visibles para el usuario firmado (todos si es administrador, o solo los asignados si es ingeniero).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Filtra por nombre o código del sitio."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "description": "Máximo de sitios a devolver."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_assets",
+        "title": "Listar activos",
+        "description": "Lista los activos visibles para el usuario firmado, con filtros por sitio, estado, condición o número de activo.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "search": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Número de activo, modelo o número de serie."
+            },
+            "siteId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identificador del sitio actual del activo."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "EN_SITIO",
+                "EN_TRANSITO"
+              ],
+              "description": "Estado del activo."
+            },
+            "condition": {
+              "type": "string",
+              "enum": [
+                "ACTIVO",
+                "DESCONECTADO",
+                "DANADO"
+              ],
+              "description": "Condición física del activo."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "description": "Máximo de activos a devolver."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_asset",
+        "title": "Consultar activo",
+        "description": "Devuelve el detalle de un activo por su número de activo (código QR), junto con sus últimos movimientos.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "assetNumber": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Número de activo o código QR."
+            },
+            "movements": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 50,
+              "default": 10,
+              "description": "Cantidad de movimientos recientes a incluir."
+            }
+          },
+          "required": [
+            "assetNumber"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_movements",
+        "title": "Listar movimientos",
+        "description": "Lista los movimientos de activos (entradas, salidas e inventarios) visibles para el usuario firmado, con filtros por sitio, acción y rango de fechas (UTC).",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "siteId": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Sitio donde ocurrió el movimiento."
+            },
+            "action": {
+              "type": "string",
+              "enum": [
+                "ENTRADA",
+                "SALIDA",
+                "INVENTARIO"
+              ],
+              "description": "Tipo de movimiento."
+            },
+            "from": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Fecha inicial en formato ISO (UTC)."
+            },
+            "to": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Fecha final en formato ISO (UTC)."
+            },
+            "protocolOmissionOnly": {
+              "type": "boolean",
+              "default": false,
+              "description": "Solo movimientos con omisión de protocolo."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "description": "Máximo de movimientos."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_alerts",
+        "title": "Listar alertas",
+        "description": "Lista las alertas de tránsito mayor a 48 horas y de omisión de protocolo. Solo los administradores tienen acceso a este listado.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "OPEN",
+                "RESOLVED"
+              ],
+              "description": "Estado de la alerta: OPEN (abierta) o RESOLVED (resuelta)."
+            },
+            "type": {
+              "type": "string",
+              "enum": [
+                "TRANSITO_48H",
+                "OMISION_PROTOCOLO"
+              ],
+              "description": "Tipo de alerta."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50,
+              "description": "Máximo de alertas."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
