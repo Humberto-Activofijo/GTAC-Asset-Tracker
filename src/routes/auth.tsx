@@ -103,12 +103,20 @@ function AuthPage() {
 
       if (profileError || !profile) {
         await supabase.auth.signOut();
-        setError("Tu cuenta no tiene un perfil válido. Contacta al administrador.");
+        setError({
+          message: "Tu cuenta no tiene un perfil válido. Contacta al administrador.",
+          detail: null,
+          retryable: false,
+        });
         return;
       }
       if (!profile.active) {
         await supabase.auth.signOut();
-        setError("Tu cuenta está desactivada. Contacta al administrador.");
+        setError({
+          message: "Tu cuenta está desactivada. Contacta al administrador.",
+          detail: null,
+          retryable: false,
+        });
         return;
       }
 
