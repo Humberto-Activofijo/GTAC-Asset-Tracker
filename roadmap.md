@@ -73,12 +73,13 @@ por cursor en bloques de 1,000 filas. Exportación exclusiva de administradores,
 verificada en el servidor. Fechas almacenadas en UTC y mostradas en
 America/Mexico_City.
 
-## En curso — Alertas por Outlook corporativo
+## Fase 5.2 — completada: correo por cuenta de Gmail
 
-- [ ] Conectar el buzón de Outlook (autorización del usuario) — pendiente de completar la autorización
-- [ ] Adaptar envío de alertas en el servidor a la conexión de Outlook
-- [ ] Configurar destinatarios y enviar correo de prueba
-- [ ] Verificar estados de correo en Alertas y actualizar docs/CORREO_ALERTAS.md
+- [x] Conectar la cuenta `alertas.gtac@gmail.com` (conector Gmail, alcance de envío)
+- [x] Selector de proveedor en el servidor (Gmail → Microsoft Graph → pendiente)
+- [x] Correo de recuperación de contraseña propio (`/api/public/password-reset`)
+- [x] Destinatarios configurados y correos de prueba reales enviados
+- [x] docs/CORREO_ALERTAS.md actualizado
 
 ## Pendiente
 
