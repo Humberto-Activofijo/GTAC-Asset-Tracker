@@ -26,6 +26,7 @@ import { Route as AuthenticatedActivosIndexRouteImport } from './routes/_authent
 import { Route as AuthenticatedActivosAssetIdRouteImport } from './routes/_authenticated/activos/$assetId'
 import { Route as AuthenticatedAdminAlertasRouteImport } from './routes/_authenticated/admin/alertas'
 import { Route as AuthenticatedAdminReportesRouteImport } from './routes/_authenticated/admin/reportes'
+import { Route as ApiPublicPasswordResetRouteImport } from './routes/api/public/password-reset'
 import { Route as ApiReportsInventoryRouteImport } from './routes/api/reports/inventory'
 import { Route as ApiReportsMovementsRouteImport } from './routes/api/reports/movements'
 
@@ -118,6 +119,11 @@ const AuthenticatedAdminReportesRoute =
     path: '/admin/reportes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicPasswordResetRoute = ApiPublicPasswordResetRouteImport.update({
+  id: '/api/public/password-reset',
+  path: '/api/public/password-reset',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiReportsInventoryRoute = ApiReportsInventoryRouteImport.update({
   id: '/api/reports/inventory',
   path: '/api/reports/inventory',
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
+  '/api/public/password-reset': typeof ApiPublicPasswordResetRoute
   '/api/reports/inventory': typeof ApiReportsInventoryRoute
   '/api/reports/movements': typeof ApiReportsMovementsRoute
   '/activos/': typeof AuthenticatedActivosIndexRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
+  '/api/public/password-reset': typeof ApiPublicPasswordResetRoute
   '/api/reports/inventory': typeof ApiReportsInventoryRoute
   '/api/reports/movements': typeof ApiReportsMovementsRoute
   '/activos': typeof AuthenticatedActivosIndexRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/_authenticated/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/_authenticated/admin/reportes': typeof AuthenticatedAdminReportesRoute
+  '/api/public/password-reset': typeof ApiPublicPasswordResetRoute
   '/api/reports/inventory': typeof ApiReportsInventoryRoute
   '/api/reports/movements': typeof ApiReportsMovementsRoute
   '/_authenticated/activos/': typeof AuthenticatedActivosIndexRoute
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/activos/$assetId'
     | '/admin/alertas'
     | '/admin/reportes'
+    | '/api/public/password-reset'
     | '/api/reports/inventory'
     | '/api/reports/movements'
     | '/activos/'
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/activos/$assetId'
     | '/admin/alertas'
     | '/admin/reportes'
+    | '/api/public/password-reset'
     | '/api/reports/inventory'
     | '/api/reports/movements'
     | '/activos'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/_authenticated/activos/$assetId'
     | '/_authenticated/admin/alertas'
     | '/_authenticated/admin/reportes'
+    | '/api/public/password-reset'
     | '/api/reports/inventory'
     | '/api/reports/movements'
     | '/_authenticated/activos/'
@@ -260,6 +272,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ApiPublicPasswordResetRoute: typeof ApiPublicPasswordResetRoute
   ApiReportsInventoryRoute: typeof ApiReportsInventoryRoute
   ApiReportsMovementsRoute: typeof ApiReportsMovementsRoute
 }
@@ -385,6 +398,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminReportesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/password-reset': {
+      id: '/api/public/password-reset'
+      path: '/api/public/password-reset'
+      fullPath: '/api/public/password-reset'
+      preLoaderRoute: typeof ApiPublicPasswordResetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/reports/inventory': {
       id: '/api/reports/inventory'
       path: '/api/reports/inventory'
@@ -442,6 +462,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ApiPublicPasswordResetRoute: ApiPublicPasswordResetRoute,
   ApiReportsInventoryRoute: ApiReportsInventoryRoute,
   ApiReportsMovementsRoute: ApiReportsMovementsRoute,
 }
