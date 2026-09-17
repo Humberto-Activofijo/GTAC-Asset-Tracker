@@ -9,6 +9,9 @@ import { Label } from "@/components/ui/label";
 import { GtacBrand } from "@/modules/layout/AppLayout";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (s: Record<string, unknown>) => ({
+    next: typeof s['next'] === "string" ? s['next'] : "",
+  }),
   head: () => ({
     meta: [
       { title: "Acceso — GTAC Trazabilidad de Activos" },
@@ -63,8 +66,14 @@ function describeAuthError(error: unknown, fallback: string): AuthFailure {
   return { message: fallback, detail: message ? `${stamp} · ${message}` : null, retryable: false };
 }
 
+/** Solo se admite una ruta relativa del mismo sitio como destino posterior al acceso. */
+function safeNext(value: string): string | null {
+  return value.startsWith("/") && !value.startsWith("//") ? value : null;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [mode, setMode] = useState<"login" | "recover">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
