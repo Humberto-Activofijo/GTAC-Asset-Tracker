@@ -45,9 +45,11 @@ const NAV_ITEMS = [
 export function GtacBrand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-foreground text-sm font-bold tracking-tight text-background">
-        GT
-      </div>
+      <img
+        src={gtacLogo.url}
+        alt="GTAC"
+        className="h-12 w-auto shrink-0 object-contain"
+      />
       {!compact && (
         <div className="leading-tight">
           <p className="text-base font-semibold text-foreground">GTAC CAT</p>
