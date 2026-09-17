@@ -12,7 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedAlertasRouteImport } from './routes/_authenticated/alertas'
 import { Route as AuthenticatedCuentaRouteImport } from './routes/_authenticated/cuenta'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -22,6 +24,7 @@ import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedMovimientosRouteImport } from './routes/_authenticated/movimientos'
 import { Route as AuthenticatedReportesRouteImport } from './routes/_authenticated/reportes'
 import { Route as AuthenticatedSitiosRouteImport } from './routes/_authenticated/sitios'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedActivosIndexRouteImport } from './routes/_authenticated/activos/index'
 import { Route as AuthenticatedActivosAssetIdRouteImport } from './routes/_authenticated/activos/$assetId'
 import { Route as AuthenticatedAdminAlertasRouteImport } from './routes/_authenticated/admin/alertas'
@@ -47,11 +50,22 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAlertasRoute = AuthenticatedAlertasRouteImport.update({
   id: '/alertas',
   path: '/alertas',
@@ -97,6 +111,11 @@ const AuthenticatedSitiosRoute = AuthenticatedSitiosRouteImport.update({
   id: '/sitios',
   path: '/sitios',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedActivosIndexRoute =
   AuthenticatedActivosIndexRouteImport.update({
@@ -156,7 +175,9 @@ const ApiPublicRestSplatRoute = ApiPublicRestSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -166,6 +187,7 @@ export interface FileRoutesByFullPath {
   '/movimientos': typeof AuthenticatedMovimientosRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
@@ -180,7 +202,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/alertas': typeof AuthenticatedAlertasRoute
   '/cuenta': typeof AuthenticatedCuentaRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -190,6 +214,7 @@ export interface FileRoutesByTo {
   '/movimientos': typeof AuthenticatedMovimientosRoute
   '/reportes': typeof AuthenticatedReportesRoute
   '/sitios': typeof AuthenticatedSitiosRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/admin/reportes': typeof AuthenticatedAdminReportesRoute
@@ -206,7 +231,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/alertas': typeof AuthenticatedAlertasRoute
   '/_authenticated/cuenta': typeof AuthenticatedCuentaRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -216,6 +243,7 @@ export interface FileRoutesById {
   '/_authenticated/movimientos': typeof AuthenticatedMovimientosRoute
   '/_authenticated/reportes': typeof AuthenticatedReportesRoute
   '/_authenticated/sitios': typeof AuthenticatedSitiosRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/activos/$assetId': typeof AuthenticatedActivosAssetIdRoute
   '/_authenticated/admin/alertas': typeof AuthenticatedAdminAlertasRoute
   '/_authenticated/admin/reportes': typeof AuthenticatedAdminReportesRoute
@@ -232,7 +260,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/mcp'
     | '/reset-password'
+    | '/.well-known/oauth-protected-resource'
     | '/alertas'
     | '/cuenta'
     | '/dashboard'
@@ -242,6 +272,7 @@ export interface FileRouteTypes {
     | '/movimientos'
     | '/reportes'
     | '/sitios'
+    | '/.lovable/oauth/consent'
     | '/activos/$assetId'
     | '/admin/alertas'
     | '/admin/reportes'
@@ -256,7 +287,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/mcp'
     | '/reset-password'
+    | '/.well-known/oauth-protected-resource'
     | '/alertas'
     | '/cuenta'
     | '/dashboard'
@@ -266,6 +299,7 @@ export interface FileRouteTypes {
     | '/movimientos'
     | '/reportes'
     | '/sitios'
+    | '/.lovable/oauth/consent'
     | '/activos/$assetId'
     | '/admin/alertas'
     | '/admin/reportes'
@@ -281,7 +315,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/mcp'
     | '/reset-password'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/alertas'
     | '/_authenticated/cuenta'
     | '/_authenticated/dashboard'
@@ -291,6 +327,7 @@ export interface FileRouteTypes {
     | '/_authenticated/movimientos'
     | '/_authenticated/reportes'
     | '/_authenticated/sitios'
+    | '/.lovable/oauth/consent'
     | '/_authenticated/activos/$assetId'
     | '/_authenticated/admin/alertas'
     | '/_authenticated/admin/reportes'
@@ -307,7 +344,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  McpRoute: typeof McpRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiPublicPasswordResetRoute: typeof ApiPublicPasswordResetRoute
   ApiPublicPasswordUpdateRoute: typeof ApiPublicPasswordUpdateRoute
   ApiReportsInventoryRoute: typeof ApiReportsInventoryRoute
@@ -339,11 +379,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/alertas': {
@@ -408,6 +462,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/sitios'
       preLoaderRoute: typeof AuthenticatedSitiosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/activos/': {
       id: '/_authenticated/activos/'
@@ -521,7 +582,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  McpRoute: McpRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiPublicPasswordResetRoute: ApiPublicPasswordResetRoute,
   ApiPublicPasswordUpdateRoute: ApiPublicPasswordUpdateRoute,
   ApiReportsInventoryRoute: ApiReportsInventoryRoute,
