@@ -1,5 +1,5 @@
 // Composición y envío de las notificaciones de alertas. Solo servidor.
-import { sendAlertEmail } from "./graph.server";
+import { sendAlertEmail } from "./mailer.server";
 
 const formatter = new Intl.DateTimeFormat("es-MX", {
   timeZone: "America/Mexico_City",

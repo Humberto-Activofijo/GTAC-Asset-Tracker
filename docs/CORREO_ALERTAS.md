@@ -8,24 +8,35 @@
 - Las alertas de omisión de protocolo notifican inmediatamente después de
   confirmarse el movimiento, la actualización del activo y la alerta.
 
-## Configuración requerida (la debe proporcionar TI)
+## Proveedor de envío (configuración vigente)
 
-Variables de entorno **solo del servidor** (nunca en el frontend):
+El envío se resuelve en `src/lib/email/mailer.server.ts` con este orden:
 
-| Variable | Descripción |
-| --- | --- |
-| `MS_GRAPH_TENANT_ID` | ID del directorio (tenant) de Microsoft Entra. |
-| `MS_GRAPH_CLIENT_ID` | ID de la aplicación registrada en Entra. |
-| `MS_GRAPH_CLIENT_SECRET` | Secreto de cliente de esa aplicación. |
-| `ALERT_EMAIL_SENDER` | Buzón remitente corporativo (por ejemplo `alertas@empresa.com`). |
-| `ALERT_EMAIL_RECIPIENTS` | Destinatarios separados por comas. |
+1. **Cuenta de Gmail conectada** (actual): conector `google_mail` a través del
+   connector gateway, remitente `alertas.gtac@gmail.com`. Requiere
+   `GOOGLE_MAIL_API_KEY` (lo administra el conector), `LOVABLE_API_KEY`,
+   `ALERT_EMAIL_SENDER` y `ALERT_EMAIL_RECIPIENTS`.
+2. **Microsoft Graph / Outlook corporativo** (alternativa): se activa solo si no
+   hay conexión de Gmail y existen `MS_GRAPH_TENANT_ID`, `MS_GRAPH_CLIENT_ID`,
+   `MS_GRAPH_CLIENT_SECRET`, `ALERT_EMAIL_SENDER` y `ALERT_EMAIL_RECIPIENTS`.
+   La aplicación de Entra requiere el permiso de aplicación **Mail.Send** con
+   consentimiento de administrador.
 
-La aplicación de Entra requiere el permiso de aplicación **Mail.Send** de
-Microsoft Graph con consentimiento de administrador.
+Todas son variables **solo del servidor**; nunca se exponen en el frontend.
+Mientras falte cualquiera, las alertas siguen creándose y consultándose
+normalmente; el correo queda en estado **Correo pendiente** con el detalle.
 
-Mientras falte cualquiera de estas variables, las alertas siguen creándose y
-consultándose normalmente; el correo queda en estado **Correo pendiente** con
-el detalle de lo que falta.
+Límite práctico de Gmail: ~500 correos al día. El remitente es una cuenta
+`@gmail.com`; para mejorar la imagen y la entrega conviene migrar al buzón
+corporativo cuando TI apruebe el registro en Entra.
+
+## Recuperación de contraseña
+
+El correo de restablecimiento no usa el envío automático del backend: la ruta
+pública `src/routes/api/public/password-reset.ts` genera el enlace de un solo
+uso del lado del servidor y lo envía por el mismo proveedor de Gmail. Responde
+siempre con el mismo mensaje exista o no la cuenta, y limita a 3 intentos por
+correo cada 15 minutos.
 
 ## Estados de correo
 

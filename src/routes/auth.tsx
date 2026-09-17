@@ -132,26 +132,37 @@ function AuthPage() {
     setInfo(null);
     setLoading(true);
     try {
-      let recoverError: unknown = null;
+      let response: Response;
       try {
-        const result = await supabase.auth.resetPasswordForEmail(
-          email.trim().toLowerCase(),
-          { redirectTo: `${window.location.origin}/reset-password` },
-        );
-        recoverError = result.error;
+        response = await fetch("/api/public/password-reset", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim().toLowerCase(),
+            redirectTo: `${window.location.origin}/reset-password`,
+          }),
+        });
       } catch (thrown) {
-        recoverError = thrown;
-      }
-      if (recoverError) {
         setError(
-          describeAuthError(
-            recoverError,
-            "No fue posible enviar el correo de recuperación. Intenta más tarde.",
-          ),
+          describeAuthError(thrown, "No fue posible enviar el correo de recuperación. Intenta más tarde."),
         );
         return;
       }
-      setInfo("Si el correo pertenece a una cuenta registrada, recibirás un enlace para restablecer tu contraseña.");
+
+      const payload = (await response.json().catch(() => null)) as
+        | { ok?: boolean; message?: string }
+        | null;
+
+      if (!response.ok || !payload?.ok) {
+        setError({
+          message:
+            payload?.message ?? "No fue posible enviar el correo de recuperación. Intenta más tarde.",
+          detail: null,
+          retryable: response.status >= 500,
+        });
+        return;
+      }
+      setInfo(payload.message ?? "Si el correo pertenece a una cuenta registrada, recibirás un enlace para restablecer tu contraseña.");
     } finally {
       setLoading(false);
     }
