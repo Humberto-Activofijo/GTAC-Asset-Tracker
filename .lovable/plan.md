@@ -4,6 +4,24 @@ El envío de correo ya está programado en la aplicación. Falta únicamente que
 entregue los datos de la cuenta corporativa y que los guardemos de forma segura
 en el servidor. Abajo está la lista exacta para pedirla a TI.
 
+## Sobre tu pregunta: ¿un correo "del sistema" sin pedir nada a TI?
+
+No existe un remitente genérico o gratuito disponible: cualquier correo que la
+aplicación envíe debe salir de un dominio propio y verificado. Las dos rutas
+posibles son:
+
+| Ruta | Qué se pide a TI | Riesgo |
+| --- | --- | --- |
+| **Outlook corporativo (recomendada, este plan)** | Registro de aplicación en Entra con `Mail.Send`. No se toca DNS ni servidores de correo. | Ninguno relevante; los correos salen del dominio gtac.com.mx con reputación corporativa. |
+| **Plataforma de correo externa con subdominio** (p. ej. `alertas.gtac.com.mx` delegado al servicio de envío) | Que TI agregue registros DNS (delegación de subdominio) en el proveedor que administra gtac.com.mx. | Configurar DNS una vez; los buzones @gtac.com.mx podrían marcar como spam un remitente que no es un buzón corporativo real. |
+
+En ambas rutas interviene TI; la de Outlook corporativo es la que menos pide
+(no toca DNS ni requiere hosting de correo) y la que mejor llega a buzones
+@gtac.com.mx, porque los correos salen exactamente igual que un correo enviado
+por ese buzón. Por eso se mantiene como plan.
+
+
+
 ## Lo que hay que pedir a TI
 
 **1. Registro de aplicación en Microsoft Entra (Azure AD)**
